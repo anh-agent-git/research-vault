@@ -34,6 +34,21 @@ npm run dev                      # Start dev server
 docker compose up                # Start all services
 ```
 
+### Pre-commit Hooks
+
+Install pre-commit hooks to catch issues before committing:
+
+```bash
+pip install pre-commit           # Install pre-commit
+pre-commit install               # Set up git hooks
+pre-commit run --all-files       # Run on all files (optional)
+```
+
+This will automatically run:
+- **Secret detection** (detect-secrets, gitleaks) - prevents accidental credential commits
+- **Python linting** (ruff) - catches code issues
+- **File checks** - trailing whitespace, large files, merge conflicts
+
 ## Code Standards
 
 ### Python (Backend)
