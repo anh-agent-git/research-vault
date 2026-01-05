@@ -1,18 +1,18 @@
 # Research Vault
 
-An AI-powered research assistant that extracts structured insights from papers and enables cross-document synthesis through natural language queries.
+An AI-powered research assistant that extracts structured patterns from papers and enables cross-document synthesis through natural language queries.
 
 ## Overview
 
-Research Vault transforms unstructured research content (PDFs, articles, notes) into a queryable knowledge base. Unlike traditional RAG systems that chunk and retrieve raw text, Research Vault extracts **discrete insights** with structured metadata, enabling true cross-paper synthesis.
+Research Vault transforms unstructured research content (PDFs, articles, notes) into a queryable knowledge base. Unlike traditional RAG systems that chunk and retrieve raw text, Research Vault extracts **discrete patterns** with structured metadata, enabling true cross-paper synthesis.
 
 ## Core Features
 
 - **Ingest** research papers (PDF or text)
-- **Extract** structured insights (Claim, Evidence, Context)
+- **Extract** structured patterns (Claim, Evidence, Context)
 - **Store** in hybrid database (relational + vector)
 - **Query** with natural language across your entire library
-- **Synthesize** cross-document insights with source attribution
+- **Synthesize** cross-document patterns with source attribution
 
 ## Tech Stack
 

@@ -37,7 +37,7 @@ Repository with LICENSE, README, documentation structure, and GitHub configs.
 ### Slice 3: Documentation Foundation
 - Created CLAUDE.md with:
   - Project overview and problem statement
-  - Insight schema (Claim/Evidence/Context)
+  - Pattern schema (Claim/Evidence/Context)
   - Engineer instructions (session workflow, devlog updates)
   - Execution control rules (slice-based, approval gates)
   - Development commands and gotchas
