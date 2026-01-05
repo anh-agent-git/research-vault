@@ -2,15 +2,15 @@
 
 ## Overview
 
-An AI research assistant that ingests papers/articles, extracts structured research insights, stores them in a searchable knowledge base, and answers cross-paper questions through synthesis—not summarization.
+An AI research assistant that ingests papers/articles, extracts structured research patterns, stores them in a searchable knowledge base, and answers cross-paper questions through synthesis—not summarization.
 
 ## Problem Statement
 
 Research insights are fragmented across PDFs, notes, and memory. There is no cumulative system that converts reading into a structured, queryable body of knowledge that compounds over time.
 
-## The Insight Schema
+## The Pattern Schema
 
-Research Vault extracts structured insights with three core components:
+Research Vault extracts structured patterns with three core components:
 
 ### Claim
 The main insight, assertion, or finding from the source material.
@@ -38,15 +38,15 @@ Surrounding context, implications, limitations, or connections to other ideas.
 ## Core Capabilities
 
 1. **Ingest** research content (PDF or text)
-2. **Extract** structured insights (Claim, Evidence, Context)
-3. **Persist** insights and paper metadata in a hybrid store (semantic + structured)
+2. **Extract** structured patterns (Claim, Evidence, Context)
+3. **Persist** patterns and paper metadata in a hybrid store (semantic + structured)
 4. **Query** across the full library with natural language
-5. **Synthesize** insights (themes, agreements, contradictions) grounded in stored data
-6. **Detect** relationships and conflicts between insights
+5. **Synthesize** patterns (themes, agreements, contradictions) grounded in stored data
+6. **Detect** relationships and conflicts between patterns
 
-## Insights as First-Class Entities
+## Patterns as First-Class Entities
 
-Unlike traditional RAG systems that chunk and retrieve raw text, this system extracts **structured insights**—discrete findings with Claim/Evidence/Context attribution, source metadata, and semantic embeddings. This enables true cross-paper synthesis.
+Unlike traditional RAG systems that chunk and retrieve raw text, this system extracts **structured patterns**—discrete findings with Claim/Evidence/Context attribution, source metadata, and semantic embeddings. This enables true cross-paper synthesis.
 
 ## Target User
 
@@ -56,16 +56,16 @@ Single expert user optimizing for depth of understanding, synthesis, and long-te
 
 The system should answer questions like:
 
-- "What insights recur across papers about agent memory limitations?"
+- "What patterns recur across papers about agent memory limitations?"
 - "Where do authors disagree on whether tool use reduces hallucinations?"
-- "Synthesize what I've learned about prompt engineering, with references to extracted insights."
+- "Synthesize what I've learned about prompt engineering, with references to extracted patterns."
 
-Answers must be **grounded in stored insights and metadata**, not only the current prompt context.
+Answers must be **grounded in stored patterns and metadata**, not only the current prompt context.
 
 ## Why Build This
 
 - Portfolio-grade agentic system (orchestration, memory, tooling)
-- Practical research workflow and insight engine
+- Practical research workflow and pattern extraction engine
 - Open-source alternative to proprietary research tools
 
 ## Tech Stack
@@ -269,7 +269,7 @@ This project was migrated from a private codebase. Reference materials:
 | Aspect | Source (research-assistant) | This Repo (research-vault) |
 |--------|----------------------------|---------------------------|
 | Extraction schema | SRAL (State, Reason, Act, Learn) | Claim, Evidence, Context |
-| Domain-specific | Yes (SRAL framework) | Generic research insights |
+| Domain-specific | Yes (SRAL framework) | Generic research patterns |
 | Filters | SRAL component filters | Tag-based filters |
 | Pattern fields | `state_content`, `reason_content`, `act_content`, `learn_content` | `claim`, `evidence`, `context` |
 
