@@ -1,0 +1,131 @@
+# Contributing to Research Vault
+
+Thank you for your interest in contributing to Research Vault! This document provides guidelines for contributing.
+
+## Getting Started
+
+1. Fork the repository
+2. Clone your fork locally
+3. Set up the development environment (see below)
+4. Create a feature branch from `main`
+
+## Development Setup
+
+### Backend
+
+```bash
+cd backend
+uv sync                          # Install dependencies
+uv run alembic upgrade head      # Run migrations
+uv run uvicorn app.main:app --reload  # Start server
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install                      # Install dependencies
+npm run dev                      # Start dev server
+```
+
+### Docker (Full Stack)
+
+```bash
+docker compose up                # Start all services
+```
+
+## Code Standards
+
+### Python (Backend)
+
+- **Formatter:** ruff format
+- **Linter:** ruff check
+- **Type hints:** Required for all functions
+- **Tests:** pytest with mocked external services
+
+```bash
+uv run ruff check .              # Lint
+uv run ruff format .             # Format
+uv run pytest                    # Test
+```
+
+### TypeScript (Frontend)
+
+- **Linter:** ESLint
+- **Formatter:** Prettier
+- **Types:** Strict TypeScript
+
+```bash
+npm run lint                     # Lint
+npm run build                    # Type check + build
+```
+
+## Pull Request Process
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Write tests for new functionality
+   - Ensure all tests pass
+   - Follow code standards
+
+3. **Commit with clear messages**
+   ```
+   Add user authentication endpoint
+
+   - Implement JWT token generation
+   - Add login/logout routes
+   - Include unit tests
+   ```
+
+4. **Push and create PR**
+   - Fill out the PR template
+   - Link related issues
+   - Request review
+
+5. **Address feedback**
+   - Respond to review comments
+   - Push additional commits as needed
+
+## Testing
+
+All contributions must include tests:
+
+- **Unit tests** for new services/utilities
+- **Integration tests** for API endpoints
+- **Update existing tests** if behavior changes
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=app --cov-report=html
+```
+
+## Issue Guidelines
+
+### Bug Reports
+
+- Use the bug report template
+- Include steps to reproduce
+- Provide environment details
+
+### Feature Requests
+
+- Use the feature request template
+- Explain the problem being solved
+- Consider alternatives
+
+## Code of Conduct
+
+- Be respectful and inclusive
+- Focus on constructive feedback
+- Help others learn and grow
+
+## Questions?
+
+Open an issue with the `question` label or start a discussion.
