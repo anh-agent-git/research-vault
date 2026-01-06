@@ -23,11 +23,12 @@ def test_health_endpoint_tracing_disabled_by_default(client):
     assert data["tracing"] == "disabled"
 
 
-def test_health_endpoint_qdrant_not_configured(client):
-    """Qdrant should show as not_configured until VectorStoreService is implemented."""
+def test_health_endpoint_qdrant_status(client):
+    """Qdrant should show status based on connection check."""
     response = client.get("/health")
     data = response.json()
-    assert data["qdrant"] == "not_configured"
+    # Qdrant status depends on whether Qdrant is running
+    assert data["qdrant"] in ["ok", "error"]
 
 
 def test_health_endpoint_sessions_zero(client):
@@ -46,16 +47,19 @@ def test_health_endpoint_database_status(client):
 
 
 def test_health_endpoint_status_logic(client):
-    """Overall status should be degraded when DB is OK (Qdrant not configured)."""
+    """Overall status reflects combined health of database and Qdrant."""
     response = client.get("/health")
     data = response.json()
     # Status should be:
+    # - "ok" if both database and Qdrant are healthy
+    # - "degraded" if database OK but Qdrant fails
     # - "error" if database fails
-    # - "degraded" if database OK but Qdrant not configured
-    if data["database"] == "ok":
-        assert data["status"] == "degraded"
-    else:
+    if data["database"] == "error":
         assert data["status"] == "error"
+    elif data["database"] == "ok" and data["qdrant"] == "ok":
+        assert data["status"] == "ok"
+    else:
+        assert data["status"] == "degraded"
 
 
 def test_health_endpoint_database_failure(client):

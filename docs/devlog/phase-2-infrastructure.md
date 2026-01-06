@@ -17,6 +17,7 @@ Backend and frontend scaffolding with database and vector store setup.
 | 2025-01-05 | Claude Opus 4.5 | Slice 1: Backend scaffolding (pyproject.toml, main.py, config.py) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 2: Database setup (async SQLAlchemy, Alembic, health check) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 3: Core services (PDF parser, LLM client) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 4: More services (VectorStoreService, SessionManager) |
 
 ---
 
@@ -208,12 +209,111 @@ backend/
 
 ---
 
+## Slice 4: More Services
+
+### What We Did
+
+- Created `backend/app/schemas/__init__.py`:
+  - Exports ConversationSession, ConversationTurn, SourceReference
+
+- Created `backend/app/schemas/session.py`:
+  - SourceReference schema with pattern_id, summary, relevance_score
+  - ConversationTurn schema (role, content, sources, timestamp)
+  - ConversationSession schema (session_id, history, timestamps)
+
+- Created `backend/app/services/vector_store.py`:
+  - Qdrant client wrapper for pattern embeddings
+  - `ensure_collection()` - Creates collection if not exists
+  - `health_check()` - Verifies Qdrant connectivity
+  - `upsert_pattern()` - Store/update pattern embeddings
+  - `delete_pattern()` - Remove pattern from vector store
+  - `search()` - Semantic search with filters and limits
+  - `get_collection_info()` - Collection statistics
+
+- Created `backend/app/services/session_manager.py`:
+  - Thread-safe in-memory session storage with TTL
+  - `create_session()` - Create new session with UUID
+  - `get_session()` - Retrieve session (returns None if expired)
+  - `update_session()` - Add conversation turn to session
+  - `delete_session()` - Remove session by ID
+  - `cleanup_expired()` - Remove all expired sessions
+  - Background cleanup task with configurable interval
+  - Content truncation for oversized responses (B-006)
+  - History length limit with sliding window (100 turns)
+  - Maximum sessions limit (10,000) to prevent memory exhaustion
+
+- Updated `backend/app/services/__init__.py`:
+  - Exports VectorStoreService, SessionManager, session_manager
+
+- Updated `backend/app/main.py`:
+  - Added SessionManager cleanup task to lifespan
+  - Health check now uses VectorStoreService for real Qdrant status
+  - Health check returns actual session count from SessionManager
+  - Status logic: "ok" (both healthy), "degraded" (db only), "error"
+
+- Updated `backend/tests/test_api/test_health.py`:
+  - Updated tests to reflect new status logic
+  - Qdrant status now "ok" or "error" (not "not_configured")
+
+- Created comprehensive tests:
+  - `tests/test_services/test_vector_store.py` - 33 tests
+  - `tests/test_services/test_session_manager.py` - 45 tests
+
+### How We Verified
+
+```bash
+cd backend
+uv run ruff check .                    # All checks passed
+uv run pytest tests/ -v                # 160 tests passed
+```
+
+### Files Created
+
+```
+backend/
+├── app/
+│   ├── schemas/
+│   │   ├── __init__.py          # Schema exports
+│   │   └── session.py           # Session schemas
+│   └── services/
+│       ├── __init__.py          # Updated exports
+│       ├── vector_store.py      # Qdrant client wrapper
+│       └── session_manager.py   # Session storage with TTL
+└── tests/
+    └── test_services/
+        ├── test_vector_store.py     # 33 tests
+        └── test_session_manager.py  # 45 tests
+```
+
+### Test Coverage
+
+| Service | Tests | Coverage |
+|---------|-------|----------|
+| VectorStoreService | 33 | Init, ensure_collection, health_check, upsert, delete, search, get_info |
+| SessionManager | 45 | Init, create, get, update, delete, cleanup, TTL, limits, async tasks, schemas |
+| **Total New** | **78** | |
+
+---
+
+## Decisions Made (Slice 4)
+
+| Decision | Rationale |
+|----------|-----------|
+| Minimal SourceReference schema | Full implementation with paper details comes in query phase |
+| Global session_manager singleton | Matches source repo pattern, used in lifespan |
+| Thread lock for session storage | Ensures thread-safety with async cleanup |
+| Content truncation at 100KB | Prevents memory exhaustion from large responses |
+| 100 turn history limit | Sliding window prevents unbounded memory growth |
+| 10,000 max sessions | Protects against memory exhaustion |
+
+---
+
 ## Open Questions / Next Steps
 
-**Next Slice (Slice 4):** More services
-- `app/services/vector_store.py` - Qdrant client wrapper
-- `app/services/session_manager.py` - In-memory session storage with TTL
+**Next Slice (Slice 5):** Frontend scaffolding
+- Next.js 16.x setup
+- Basic layout components
+- Health check display
 
 **Remaining Slices:**
-- Slice 5: Frontend scaffolding
 - Slice 6: Docker setup

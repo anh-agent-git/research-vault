@@ -11,6 +11,8 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.db import async_session_maker
+from app.services.session_manager import session_manager
+from app.services.vector_store import VectorStoreService
 
 logger = logging.getLogger(__name__)
 
@@ -69,10 +71,13 @@ async def lifespan(app: FastAPI):
             "Set this environment variable to enable vector search."
         )
 
+    # Start session cleanup task
+    await session_manager.start_cleanup_task()
+
     yield
 
     # Shutdown
-    pass
+    await session_manager.stop_cleanup_task()
 
 
 # OpenAPI tag descriptions
@@ -135,6 +140,7 @@ app.add_middleware(
 async def health_check() -> dict:
     """Health check endpoint with database and Qdrant status."""
     db_ok = False
+    qdrant_ok = False
 
     # Check database connection
     try:
@@ -144,19 +150,34 @@ async def health_check() -> dict:
     except Exception:
         pass
 
+    # Check Qdrant connection
+    try:
+        vector_store = VectorStoreService(
+            host=settings.qdrant_host,
+            port=settings.qdrant_port,
+        )
+        qdrant_ok = vector_store.health_check()
+    except Exception:
+        pass
+
     # Check LangSmith tracing status
     tracing_enabled = (
         os.environ.get("LANGCHAIN_TRACING_V2") == "true"
         and os.environ.get("LANGCHAIN_API_KEY")
     )
 
-    # Determine overall status (degraded until Qdrant is configured)
-    status = "degraded" if db_ok else "error"
+    # Determine overall status
+    if db_ok and qdrant_ok:
+        status = "ok"
+    elif db_ok:
+        status = "degraded"
+    else:
+        status = "error"
 
     return {
         "status": status,
         "database": "ok" if db_ok else "error",
-        "qdrant": "not_configured",
-        "sessions": 0,
+        "qdrant": "ok" if qdrant_ok else "error",
+        "sessions": session_manager.session_count,
         "tracing": "enabled" if tracing_enabled else "disabled",
     }
