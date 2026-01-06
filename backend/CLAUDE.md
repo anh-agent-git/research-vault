@@ -33,7 +33,8 @@ backend/
 │   ├── schemas/
 │   │   ├── __init__.py
 │   │   ├── session.py       # ConversationSession, Turn, SourceReference
-│   │   └── paper.py         # PaperMetadataInput, PaperMetadataExtracted, PaperResponse
+│   │   ├── paper.py         # PaperMetadataInput, PaperMetadataExtracted, PaperResponse
+│   │   └── query.py         # QueryRequest, QueryResponse, FollowUpRequest
 │   ├── services/
 │   │   ├── __init__.py           # Service exports
 │   │   ├── pdf_parser.py         # PDFParserService
@@ -55,13 +56,21 @@ backend/
 │       ├── ingestion.py      # PDF → Paper + Patterns
 │       ├── review.py         # Pattern decisions → Embeddings + Vector store
 │       └── query.py          # Query → Search → Synthesize
+│   └── routers/
+│       ├── __init__.py       # Router exports
+│       ├── papers.py         # Paper CRUD routes
+│       ├── patterns.py       # Pattern management routes
+│       └── query.py          # Query routes
 ├── alembic/
 │   ├── env.py               # Async migration environment
 │   └── versions/            # Migration files
 ├── tests/
 │   ├── conftest.py          # Fixtures (db, mocks)
 │   ├── test_api/
-│   │   └── test_health.py
+│   │   ├── test_health.py
+│   │   ├── test_papers.py    # Paper route tests
+│   │   ├── test_patterns.py  # Pattern route tests
+│   │   └── test_query.py     # Query route tests
 │   ├── test_services/
 │   │   ├── test_pdf_parser.py
 │   │   ├── test_llm_client.py
@@ -282,6 +291,93 @@ result = await workflow.run(QueryInput(
 ```
 
 Flow: Get/create session → Embed query → Search vectors → Retrieve patterns → Synthesize → Update session
+
+### API Routes
+
+Routes are thin wrappers that validate input, call workflows, and format output.
+
+#### Paper Routes (`/api/papers`)
+
+```python
+from app.routers import papers_router
+
+# POST /api/papers - Upload paper (PDF or text)
+# Accepts multipart form: file (PDF) OR text, plus optional metadata fields
+# Returns: paper_id, metadata, patterns (pending), warnings
+
+# GET /api/papers - List papers with filters
+# Query params: status, type, limit, offset
+# Returns: papers list with pattern_count, total count
+
+# GET /api/papers/{paper_id} - Get single paper
+# Returns: full paper details with pattern_count
+
+# DELETE /api/papers/{paper_id} - Delete paper and all patterns
+# Also removes patterns from vector store
+```
+
+#### Pattern Routes (`/api/papers/{id}/patterns`, `/api/patterns`)
+
+```python
+from app.routers import paper_patterns_router, patterns_router
+
+# POST /api/papers/{paper_id}/patterns - Submit review decisions
+# Body: {"decisions": [{"temp_id": "...", "approved": true/false}]}
+# Returns: approved_count, rejected_count, patterns
+
+# GET /api/papers/{paper_id}/patterns - List patterns for paper
+# Query params: status
+# Returns: patterns list
+
+# PUT /api/patterns/{pattern_id} - Update pattern
+# Body: partial pattern fields (name, claim, evidence, context, tags)
+# Triggers re-embedding if content fields change
+
+# DELETE /api/patterns/{pattern_id} - Delete pattern
+# Also removes from vector store
+```
+
+#### Query Routes (`/api/query`)
+
+```python
+from app.routers import query_router
+
+# POST /api/query - Submit query (creates or uses session)
+# Body: {"query": "...", "session_id": "..." (optional)}
+# Returns: session_id, response, sources, confidence, follow_up_suggestions
+
+# POST /api/query/followup - Follow-up query (requires session)
+# Body: {"query": "...", "session_id": "..." (required)}
+# Returns: same as above, uses conversation history
+```
+
+#### Route Pattern
+
+All routes follow this pattern:
+
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db import get_db
+
+router = APIRouter(prefix="/api/resource", tags=["resource"])
+
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_resource(
+    request: RequestSchema,
+    db: AsyncSession = Depends(get_db),
+) -> ResponseSchema:
+    workflow = SomeWorkflow(db=db)
+    result = await workflow.run(...)
+
+    if not result.success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"code": "ERROR_CODE", "message": result.error},
+        )
+
+    return ResponseSchema(...)
+```
 
 ## Common Commands
 

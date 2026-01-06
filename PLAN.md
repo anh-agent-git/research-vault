@@ -161,14 +161,14 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 
 **Dependencies:** Phase 5 (workflows exist)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Implement paper routes | ⬜ | Upload, list, get, delete |
-| Implement pattern routes | ⬜ | CRUD, review |
-| Implement query routes | ⬜ | Query, follow-up |
-| Write API tests | ⬜ | TDD |
+| Implement paper routes | ✅ | Upload (PDF/text), list, get, delete (PR #24) |
+| Implement pattern routes | ✅ | Review decisions, list, update, delete (PR #24) |
+| Implement query routes | ✅ | Query, follow-up with session management (PR #24) |
+| Write API tests | ✅ | 44 tests (TDD approach) |
 
 **Devlog:** [`docs/devlog/phase-6-api.md`](docs/devlog/phase-6-api.md)
 
@@ -229,10 +229,10 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 | Phase 3: Domain Model | ✅ | 6/6 |
 | Phase 4: Extraction | ✅ | 6/6 |
 | Phase 5: Workflows | ✅ | 4/4 |
-| Phase 6: API | ⬜ | 0/4 |
+| Phase 6: API | ✅ | 4/4 |
 | Phase 7: Frontend | ⬜ | 0/6 |
 | Phase 8: Polish | ⬜ | 0/5 |
-| **Total** | 🟡 | **39/54** |
+| **Total** | 🟡 | **43/54** |
 
 ---
 
