@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -69,21 +69,35 @@ class Pattern(Base):
         Index("idx_patterns_paper_id", "paper_id"),
         Index("idx_patterns_status", "status"),
         Index("idx_patterns_paper_status", "paper_id", "status"),
+        CheckConstraint(
+            "claim IS NOT NULL OR evidence IS NOT NULL OR context IS NOT NULL",
+            name="ck_patterns_has_content",
+        ),
     )
 
     @property
     def has_valid_content(self) -> bool:
-        """Return True if at least one content field is set and non-empty."""
-        return bool(self.claim or self.evidence or self.context)
+        """Return True if at least one content field is set and non-empty.
+
+        Whitespace-only strings are considered empty.
+        """
+        return bool(
+            (self.claim and self.claim.strip())
+            or (self.evidence and self.evidence.strip())
+            or (self.context and self.context.strip())
+        )
 
     @property
     def content_fields(self) -> list[str]:
-        """Return list of non-null content field names in order."""
+        """Return list of non-null, non-empty content field names in order.
+
+        Whitespace-only strings are considered empty.
+        """
         fields = []
-        if self.claim:
+        if self.claim and self.claim.strip():
             fields.append("claim")
-        if self.evidence:
+        if self.evidence and self.evidence.strip():
             fields.append("evidence")
-        if self.context:
+        if self.context and self.context.strip():
             fields.append("context")
         return fields

@@ -5,6 +5,7 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -158,6 +159,28 @@ class TestPatternContentValidation:
         )
         assert pattern.has_valid_content is False
 
+    def test_has_valid_content_with_whitespace_only(self):
+        """has_valid_content should return False for whitespace-only strings."""
+        pattern = Pattern(
+            paper_id="test-id",
+            name="Test",
+            claim="   ",
+            evidence="\t\n",
+            context="  \t  ",
+        )
+        assert pattern.has_valid_content is False
+
+    def test_has_valid_content_with_mixed_whitespace_and_content(self):
+        """has_valid_content should return True if any field has real content."""
+        pattern = Pattern(
+            paper_id="test-id",
+            name="Test",
+            claim="   ",  # whitespace only
+            evidence="Real content",  # has content
+            context=None,
+        )
+        assert pattern.has_valid_content is True
+
 
 class TestPatternContentFields:
     """Tests for Pattern content_fields property."""
@@ -201,6 +224,28 @@ class TestPatternContentFields:
     def test_content_fields_empty_when_no_content(self):
         """content_fields should be empty when no content set."""
         pattern = Pattern(paper_id="test", name="Test")
+        assert pattern.content_fields == []
+
+    def test_content_fields_excludes_whitespace_only(self):
+        """content_fields should exclude whitespace-only strings."""
+        pattern = Pattern(
+            paper_id="test",
+            name="Test",
+            claim="   ",  # whitespace only - excluded
+            evidence="Real evidence",  # included
+            context="\t\n",  # whitespace only - excluded
+        )
+        assert pattern.content_fields == ["evidence"]
+
+    def test_content_fields_empty_when_all_whitespace(self):
+        """content_fields should be empty when all fields are whitespace-only."""
+        pattern = Pattern(
+            paper_id="test",
+            name="Test",
+            claim="   ",
+            evidence="\t",
+            context="  \n  ",
+        )
         assert pattern.content_fields == []
 
 
@@ -364,3 +409,55 @@ class TestPatternRelationship:
             select(Pattern).where(Pattern.id == pattern_id)
         )
         assert result.scalar_one_or_none() is None
+
+
+class TestPatternCheckConstraint:
+    """Tests for Pattern CHECK constraint (ck_patterns_has_content)."""
+
+    @pytest.mark.asyncio
+    async def test_insert_pattern_without_content_raises_integrity_error(
+        self, async_db_session: AsyncSession
+    ):
+        """Inserting a pattern with no content fields should raise IntegrityError."""
+        paper = Paper(title="Test Paper", type=PaperType.research_paper)
+        async_db_session.add(paper)
+        await async_db_session.commit()
+
+        # Try to insert pattern with no content fields
+        pattern = Pattern(
+            paper_id=paper.id,
+            name="Empty Pattern",
+            # No claim, evidence, or context
+        )
+        async_db_session.add(pattern)
+
+        with pytest.raises(IntegrityError) as exc_info:
+            await async_db_session.commit()
+
+        # Verify it's the CHECK constraint that failed
+        assert (
+            "ck_patterns_has_content" in str(exc_info.value).lower()
+            or "check" in str(exc_info.value).lower()
+        )
+
+    @pytest.mark.asyncio
+    async def test_insert_pattern_with_content_succeeds(
+        self, async_db_session: AsyncSession
+    ):
+        """Inserting a pattern with at least one content field should succeed."""
+        paper = Paper(title="Test Paper", type=PaperType.research_paper)
+        async_db_session.add(paper)
+        await async_db_session.commit()
+
+        # Insert pattern with claim only
+        pattern = Pattern(
+            paper_id=paper.id,
+            name="Valid Pattern",
+            claim="This is a valid claim",
+        )
+        async_db_session.add(pattern)
+        await async_db_session.commit()
+        await async_db_session.refresh(pattern)
+
+        assert pattern.id is not None
+        assert pattern.claim == "This is a valid claim"
