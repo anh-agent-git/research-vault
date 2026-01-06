@@ -97,6 +97,11 @@ class ExtractedPatternResponse(BaseModel):
         default_factory=list,
         description="Classification tags",
     )
+    confidence: str = Field(
+        default="medium",
+        description="Extraction confidence (high, medium, low)",
+        json_schema_extra={"example": "high"},
+    )
 
     @property
     def content_fields(self) -> list[str]:

@@ -140,14 +140,14 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 
 **Dependencies:** Phase 4 (services exist)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Implement ingestion workflow | ⬜ | parse → extract_metadata → extract_patterns |
-| Implement review workflow | ⬜ | filter → embed → persist |
-| Implement query workflow | ⬜ | prepare → search → retrieve → synthesize |
-| Write workflow tests | ⬜ | TDD |
+| Implement ingestion workflow | ✅ | Parse → extract_metadata → create paper → extract_patterns → create patterns |
+| Implement review workflow | ✅ | Validate → embed approved → upsert to vector store → update status |
+| Implement query workflow | ✅ | Get session → embed query → search → retrieve → synthesize → update session |
+| Write workflow tests | ✅ | 50 tests (TDD approach) |
 
 **Devlog:** [`docs/devlog/phase-5-workflows.md`](docs/devlog/phase-5-workflows.md)
 
@@ -228,11 +228,11 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 | Phase 2: Infrastructure | ✅ | 9/9 |
 | Phase 3: Domain Model | ✅ | 6/6 |
 | Phase 4: Extraction | ✅ | 6/6 |
-| Phase 5: Workflows | ⬜ | 0/4 |
+| Phase 5: Workflows | ✅ | 4/4 |
 | Phase 6: API | ⬜ | 0/4 |
 | Phase 7: Frontend | ⬜ | 0/6 |
 | Phase 8: Polish | ⬜ | 0/5 |
-| **Total** | 🟡 | **35/54** |
+| **Total** | 🟡 | **39/54** |
 
 ---
 
@@ -250,6 +250,8 @@ Track key decisions made during implementation:
 | 2026-01-06 | 3-pass evidence-anchored extraction | Higher quality through evidence grounding, reproducible results |
 | 2026-01-06 | Multi-model strategy (Haiku/Sonnet) | Cost optimization: Haiku for Pass 1/3, Sonnet for Pass 2 |
 | 2026-01-06 | Computed verification status override | Consistent status rules, don't trust LLM's self-assessment |
+| 2026-01-05 | Simple async functions over LangGraph | Linear pipelines don't need graph complexity; easier testing/debugging |
+| 2026-01-05 | Partial success workflow strategy | Continue on non-critical failures (e.g., paper created even if patterns fail) |
 
 ---
 
