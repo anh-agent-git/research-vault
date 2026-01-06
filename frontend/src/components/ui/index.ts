@@ -23,5 +23,11 @@ export {
   DialogTrigger,
 } from "./dialog";
 export { Input, type InputProps } from "./input";
+export {
+  LoadingPage,
+  type LoadingPageProps,
+  LoadingSpinner,
+  type LoadingSpinnerProps,
+} from "./loading";
 export { Select, type SelectOption, type SelectProps } from "./select";
 export { Textarea, type TextareaProps } from "./textarea";

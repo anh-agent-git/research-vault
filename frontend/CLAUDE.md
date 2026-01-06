@@ -12,6 +12,7 @@ Next.js frontend for Research Vault. Provides UI for paper upload, pattern revie
 - **Dark Mode:** next-themes
 - **Icons:** Lucide React
 - **TypeScript:** 5.x
+- **Testing:** Vitest + Testing Library
 
 ## Directory Structure
 
@@ -19,35 +20,105 @@ Next.js frontend for Research Vault. Provides UI for paper upload, pattern revie
 frontend/
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx       # Root layout with ThemeProvider
-│   │   ├── page.tsx         # Home page (health dashboard)
-│   │   └── globals.css      # Tailwind imports + CSS variables
+│   │   ├── layout.tsx           # Root layout with MainNav
+│   │   ├── page.tsx             # Redirects to /library
+│   │   ├── globals.css          # Tailwind imports + CSS variables
+│   │   ├── upload/page.tsx      # Paper upload (PDF/text)
+│   │   ├── review/[paperId]/page.tsx  # Pattern review
+│   │   ├── library/page.tsx     # Paper list with filters
+│   │   └── query/page.tsx       # Query interface
 │   ├── components/
-│   │   └── theme-provider.tsx  # next-themes wrapper
-│   └── lib/
-│       ├── api.ts           # Backend API client
-│       └── utils.ts         # cn() utility
-├── public/                  # Static assets
+│   │   ├── ui/                  # Base UI components
+│   │   │   ├── badge.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── loading.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   └── index.ts
+│   │   ├── nav/                 # Navigation
+│   │   │   ├── main-nav.tsx
+│   │   │   └── index.ts
+│   │   ├── upload/              # Upload page components
+│   │   │   ├── file-upload.tsx
+│   │   │   ├── text-input.tsx
+│   │   │   ├── metadata-form.tsx
+│   │   │   └── index.ts
+│   │   ├── review/              # Review page components
+│   │   │   ├── pattern-card.tsx
+│   │   │   ├── review-summary.tsx
+│   │   │   └── index.ts
+│   │   ├── library/             # Library page components
+│   │   │   ├── filter-bar.tsx
+│   │   │   ├── paper-card.tsx
+│   │   │   ├── pattern-detail.tsx
+│   │   │   └── index.ts
+│   │   ├── query/               # Query page components
+│   │   │   ├── search-input.tsx
+│   │   │   ├── response-display.tsx
+│   │   │   ├── conversation-history.tsx
+│   │   │   └── index.ts
+│   │   └── theme-provider.tsx   # next-themes wrapper
+│   ├── lib/
+│   │   ├── api.ts               # Backend API client
+│   │   ├── api.test.ts          # API client tests
+│   │   ├── utils.ts             # cn() utility
+│   │   └── utils.test.ts        # Utility tests
+│   ├── test/
+│   │   └── setup.ts             # Vitest setup
+│   └── types/
+│       └── index.ts             # TypeScript types
+├── vitest.config.ts             # Vitest configuration
 ├── package.json
 ├── tsconfig.json
-├── next.config.ts           # Standalone output for Docker
-├── postcss.config.mjs
-├── eslint.config.mjs        # Flat config with Prettier
-├── .prettierrc
-├── Dockerfile               # Multi-stage build
+├── next.config.ts
+├── Dockerfile
 └── .dockerignore
 ```
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Redirects to `/library` |
+| `/upload` | Upload PDF or paste text, extract patterns |
+| `/review/[paperId]` | Review and approve/reject extracted patterns |
+| `/library` | Browse papers with filters, manage patterns |
+| `/query` | Ask questions about your research library |
 
 ## Key Patterns
 
 ### API Client
 
 ```typescript
-import { api } from '@/lib/api';
+import { uploadPaper, listPapers, submitQuery } from '@/lib/api';
 
-// Health check
-const health = await api.health();
-// { status: 'ok', database: 'ok', qdrant: 'ok', sessions: 0, tracing: 'disabled' }
+// Upload paper
+const result = await uploadPaper(formData);
+
+// List papers with filters
+const papers = await listPapers({ status: 'active', limit: 20 });
+
+// Query the library
+const response = await submitQuery('What patterns relate to X?', sessionId);
+```
+
+### UI Components
+
+All components in `@/components/ui/` follow the shadcn-style pattern:
+- No external component library dependencies
+- Use `cn()` for conditional classes
+- Support light/dark mode via CSS variables
+- Props extend HTML element attributes
+
+```tsx
+import { Button, Card, Badge, LoadingSpinner } from '@/components/ui';
+
+<Button variant="destructive" size="sm">Delete</Button>
+<Badge variant="success">Active</Badge>
+<LoadingSpinner size="lg" />
 ```
 
 ### Theme Support
@@ -101,6 +172,9 @@ npm run build
 # Lint
 npm run lint
 
+# Run tests
+npm test
+
 # Format (if configured)
 npx prettier --write .
 ```
@@ -110,6 +184,20 @@ npx prettier --write .
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | NEXT_PUBLIC_API_URL | No | http://localhost:8000 | Backend API URL |
+
+## Testing
+
+Uses Vitest with jsdom environment and Testing Library:
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm run test:watch
+```
+
+Test files: `*.test.ts` or `*.test.tsx` alongside source files.
 
 ## Docker Build
 
@@ -126,5 +214,7 @@ Build args:
 
 - Use App Router (not Pages Router)
 - Server Components by default, `'use client'` only when needed
+- Wrap `useSearchParams()` in Suspense boundary
 - Tailwind for all styling (no CSS modules)
 - Path alias `@/` maps to `src/`
+- Desktop-first responsive design
