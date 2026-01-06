@@ -26,11 +26,14 @@ backend/
 │   │   ├── __init__.py      # Exports session, engine, get_db
 │   │   └── session.py       # Async SQLAlchemy setup
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── base.py          # DeclarativeBase
+│   │   ├── __init__.py      # Exports Base, Paper, Pattern, enums
+│   │   ├── base.py          # DeclarativeBase
+│   │   ├── paper.py         # Paper model + PaperType, PaperStatus enums
+│   │   └── pattern.py       # Pattern model + PatternStatus enum
 │   ├── schemas/
 │   │   ├── __init__.py
-│   │   └── session.py       # ConversationSession, Turn, SourceReference
+│   │   ├── session.py       # ConversationSession, Turn, SourceReference
+│   │   └── paper.py         # PaperMetadataInput, PaperMetadataExtracted, PaperResponse
 │   └── services/
 │       ├── __init__.py      # Service exports
 │       ├── pdf_parser.py    # PDFParserService
