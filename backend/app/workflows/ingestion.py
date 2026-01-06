@@ -21,10 +21,23 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class IngestionInput:
-    """Input for ingestion workflow."""
+    """Input for ingestion workflow.
 
-    pdf_bytes: bytes
+    Either pdf_bytes OR text must be provided (not both, not neither).
+    """
+
+    pdf_bytes: bytes | None = None
+    text: str | None = None
     user_metadata: PaperMetadataInput | None = None
+
+    def __post_init__(self):
+        """Validate that exactly one of pdf_bytes or text is provided."""
+        has_pdf = self.pdf_bytes is not None
+        has_text = self.text is not None and self.text.strip()
+        if not has_pdf and not has_text:
+            raise ValueError("Either pdf_bytes or text must be provided")
+        if has_pdf and has_text:
+            raise ValueError("Only one of pdf_bytes or text should be provided")
 
 
 @dataclass
@@ -95,7 +108,7 @@ class IngestionWorkflow:
         """Execute the ingestion workflow.
 
         Args:
-            input: Ingestion input with PDF bytes and optional user metadata.
+            input: Ingestion input with PDF bytes OR text and optional user metadata.
 
         Returns:
             IngestionResult with paper_id, patterns, and any warnings/errors.
@@ -103,24 +116,33 @@ class IngestionWorkflow:
         warnings: list[str] = []
         paper_id = str(uuid.uuid4())
 
-        # Step 1: Parse PDF
-        try:
-            parse_result = self.pdf_parser.parse(input.pdf_bytes)
-            logger.info(f"Parsed PDF: {parse_result.page_count} pages")
-        except PDFParseError as e:
-            logger.error(f"PDF parse failed: {e}")
-            return IngestionResult(
-                paper_id=paper_id,
-                pattern_count=0,
-                success=False,
-                error=f"PDF parsing failed: {e}",
-            )
+        # Step 1: Get text content (either parse PDF or use provided text)
+        if input.pdf_bytes is not None:
+            # Parse PDF to extract text
+            try:
+                parse_result = self.pdf_parser.parse(input.pdf_bytes)
+                logger.info(f"Parsed PDF: {parse_result.page_count} pages")
+                text_content = parse_result.text
+                pdf_metadata = parse_result.metadata
+            except PDFParseError as e:
+                logger.error(f"PDF parse failed: {e}")
+                return IngestionResult(
+                    paper_id=paper_id,
+                    pattern_count=0,
+                    success=False,
+                    error=f"PDF parsing failed: {e}",
+                )
+        else:
+            # Use provided text directly
+            text_content = input.text
+            pdf_metadata = None
+            logger.info(f"Using provided text: {len(text_content)} chars")
 
         # Step 2: Extract metadata
         try:
             metadata = await self.metadata_extractor.extract(
-                text=parse_result.text,
-                pdf_hints=parse_result.metadata,
+                text=text_content,
+                pdf_hints=pdf_metadata,
                 user_metadata=input.user_metadata,
             )
             logger.info(f"Extracted metadata: {metadata.title}")
@@ -132,7 +154,9 @@ class IngestionWorkflow:
 
         # Step 3: Create Paper record
         try:
-            paper = self._create_paper(paper_id, parse_result, metadata, input)
+            paper = self._create_paper(
+                paper_id, text_content, pdf_metadata, metadata, input
+            )
             self.db.add(paper)
             await self.db.flush()  # Get paper.id before creating patterns
             logger.info(f"Created paper: {paper.id}")
@@ -151,7 +175,7 @@ class IngestionWorkflow:
         try:
             metadata_context = self._build_metadata_context(paper)
             extraction_result = await self.pattern_extractor.extract(
-                text=parse_result.text,
+                text=text_content,
                 metadata_context=metadata_context,
             )
             warnings.extend(extraction_result.warnings)
@@ -200,7 +224,8 @@ class IngestionWorkflow:
     def _create_paper(
         self,
         paper_id: str,
-        parse_result,
+        text_content: str,
+        pdf_metadata: dict | None,
         metadata,
         input: IngestionInput,
     ) -> Paper:
@@ -219,8 +244,8 @@ class IngestionWorkflow:
             published_date = input.user_metadata.published_date
             paper_type = input.user_metadata.type
         else:
-            if parse_result.metadata:
-                title = parse_result.metadata.get("title", "Untitled")
+            if pdf_metadata:
+                title = pdf_metadata.get("title", "Untitled")
             else:
                 title = "Untitled"
             authors = []
@@ -235,7 +260,7 @@ class IngestionWorkflow:
             source=source,
             published_date=published_date,
             type=paper_type,
-            content_text=parse_result.text,
+            content_text=text_content,
             status=PaperStatus.ready_for_review,
         )
 
