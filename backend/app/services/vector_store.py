@@ -2,7 +2,16 @@
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
+
+from app.config import settings
 
 COLLECTION_NAME = "patterns"
 VECTOR_SIZE = 1536  # OpenAI text-embedding-3-small
@@ -11,14 +20,17 @@ VECTOR_SIZE = 1536  # OpenAI text-embedding-3-small
 class VectorStoreService:
     """Service for managing pattern embeddings in Qdrant."""
 
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str | None = None, port: int | None = None):
         """Initialize Qdrant client.
 
         Args:
-            host: Qdrant server host.
-            port: Qdrant server port.
+            host: Qdrant server host. Defaults to settings.qdrant_host.
+            port: Qdrant server port. Defaults to settings.qdrant_port.
         """
-        self.client = QdrantClient(host=host, port=port)
+        self.client = QdrantClient(
+            host=host or settings.qdrant_host,
+            port=port or settings.qdrant_port,
+        )
         self._collection_name = COLLECTION_NAME
 
     def ensure_collection(self) -> bool:
@@ -77,6 +89,21 @@ class VectorStoreService:
             ],
         )
 
+    async def upsert(
+        self,
+        pattern_id: str,
+        embedding: list[float],
+        payload: dict,
+    ) -> None:
+        """Async alias for upsert_pattern.
+
+        Args:
+            pattern_id: Unique identifier for the pattern.
+            embedding: Embedding vector (1536 dimensions).
+            payload: Metadata for filtering.
+        """
+        self.upsert_pattern(pattern_id, embedding, payload)
+
     def delete_pattern(self, pattern_id: str) -> None:
         """Delete a pattern from the vector store.
 
@@ -86,6 +113,24 @@ class VectorStoreService:
         self.client.delete(
             collection_name=self._collection_name,
             points_selector=[pattern_id],
+        )
+
+    async def delete_by_paper_id(self, paper_id: str) -> None:
+        """Delete all patterns for a paper from the vector store.
+
+        Args:
+            paper_id: Paper ID to delete patterns for.
+        """
+        self.client.delete(
+            collection_name=self._collection_name,
+            points_selector=Filter(
+                must=[
+                    FieldCondition(
+                        key="paper_id",
+                        match=MatchValue(value=paper_id),
+                    )
+                ]
+            ),
         )
 
     def search(

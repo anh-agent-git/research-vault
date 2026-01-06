@@ -11,6 +11,12 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.db import async_session_maker
+from app.routers import (
+    paper_patterns_router,
+    papers_router,
+    patterns_router,
+    query_router,
+)
 from app.services.session_manager import session_manager
 from app.services.vector_store import VectorStoreService
 
@@ -180,3 +186,10 @@ async def health_check() -> dict:
         "sessions": session_manager.session_count,
         "tracing": "enabled" if tracing_enabled else "disabled",
     }
+
+
+# Include routers
+app.include_router(papers_router)
+app.include_router(paper_patterns_router)
+app.include_router(patterns_router)
+app.include_router(query_router)
