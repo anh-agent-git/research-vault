@@ -152,7 +152,7 @@ class LLMClient:
             # Look for ```json...``` block anywhere in the response
             json_start = content.find("```json")
             if json_start != -1:
-                content = content[json_start + 7:]  # Skip ```json
+                content = content[json_start + 7 :]  # Skip ```json
                 json_end = content.find("```")
                 if json_end != -1:
                     content = content[:json_end]

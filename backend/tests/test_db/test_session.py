@@ -127,9 +127,11 @@ class TestSessionRollback:
         """Changes that are not committed should not persist."""
         # Create a temporary table for testing
         async with async_session_maker() as session:
-            await session.execute(text(
-                "CREATE TABLE IF NOT EXISTS test_rollback (id INTEGER PRIMARY KEY)"
-            ))
+            await session.execute(
+                text(
+                    "CREATE TABLE IF NOT EXISTS test_rollback (id INTEGER PRIMARY KEY)"
+                )
+            )
             await session.commit()
 
         # Insert without commit
@@ -139,9 +141,7 @@ class TestSessionRollback:
 
         # Verify the insert was rolled back
         async with async_session_maker() as session:
-            result = await session.execute(
-                text("SELECT COUNT(*) FROM test_rollback")
-            )
+            result = await session.execute(text("SELECT COUNT(*) FROM test_rollback"))
             count = result.scalar()
             assert count == 0
 
@@ -154,10 +154,12 @@ class TestSessionRollback:
         """Explicit rollback should revert changes."""
         # Create a temporary table for testing
         async with async_session_maker() as session:
-            await session.execute(text(
-                "CREATE TABLE IF NOT EXISTS test_explicit_rollback "
-                "(id INTEGER PRIMARY KEY)"
-            ))
+            await session.execute(
+                text(
+                    "CREATE TABLE IF NOT EXISTS test_explicit_rollback "
+                    "(id INTEGER PRIMARY KEY)"
+                )
+            )
             await session.commit()
 
         # Insert and rollback

@@ -18,6 +18,7 @@ Backend and frontend scaffolding with database and vector store setup.
 | 2026-01-05 | Claude Opus 4.5 | Slice 2: Database setup (async SQLAlchemy, Alembic, health check) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 3: Core services (PDF parser, LLM client) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 4: More services (VectorStoreService, SessionManager) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 5: Frontend scaffolding (Next.js 16.x, health check UI) |
 
 ---
 
@@ -308,12 +309,87 @@ backend/
 
 ---
 
+## Slice 5: Frontend Scaffolding
+
+### What We Did
+
+- Created `frontend/package.json`:
+  - Next.js 16.1.1 with React 19.2.3
+  - Tailwind CSS v4 with tw-animate-css
+  - Lucide React for icons
+  - next-themes for dark mode support
+  - ESLint 9 with Prettier
+
+- Created configuration files:
+  - `tsconfig.json` - TypeScript with path aliases (@/*)
+  - `next.config.ts` - Standalone output for Docker
+  - `postcss.config.mjs` - Tailwind CSS PostCSS plugin
+  - `eslint.config.mjs` - Flat ESLint config with Next.js + Prettier
+  - `.prettierrc` - Consistent formatting
+
+- Created `frontend/src/app/`:
+  - `layout.tsx` - Root layout with ThemeProvider and header
+  - `page.tsx` - Home page with health check dashboard
+  - `globals.css` - Tailwind imports and CSS custom properties
+
+- Created `frontend/src/components/`:
+  - `theme-provider.tsx` - next-themes wrapper
+
+- Created `frontend/src/lib/`:
+  - `api.ts` - API client with health check endpoint
+  - `utils.ts` - cn() utility for className merging
+
+### How We Verified
+
+```bash
+cd frontend
+npm install                           # Installed 364 packages
+npm run build                         # Build succeeded
+npm run lint                          # No errors
+```
+
+### Files Created
+
+```
+frontend/
+├── package.json                # Dependencies + scripts
+├── tsconfig.json               # TypeScript config
+├── next.config.ts              # Next.js config
+├── postcss.config.mjs          # PostCSS config
+├── eslint.config.mjs           # ESLint flat config
+├── .prettierrc                 # Prettier config
+├── .gitignore                  # Git ignores
+├── .env.example                # Example environment
+├── public/                     # Static assets (empty)
+└── src/
+    ├── app/
+    │   ├── globals.css         # Tailwind + theme CSS
+    │   ├── layout.tsx          # Root layout
+    │   └── page.tsx            # Home with health check
+    ├── components/
+    │   └── theme-provider.tsx  # Theme wrapper
+    └── lib/
+        ├── api.ts              # Backend API client
+        └── utils.ts            # Utility functions
+```
+
+### Features
+
+- **Health Check Dashboard**: Real-time status of database, Qdrant, sessions, tracing
+- **Dark Mode Support**: System preference detection with manual toggle ready
+- **Responsive Design**: Mobile-friendly layout with Tailwind CSS
+- **Auto-Refresh**: Health status updates every 30 seconds
+- **Error Handling**: User-friendly error display when backend unavailable
+
+---
+
 ## Open Questions / Next Steps
 
-**Next Slice (Slice 5):** Frontend scaffolding
-- Next.js 16.x setup
-- Basic layout components
-- Health check display
+**Next Slice (Slice 6):** Docker setup
+- docker-compose.yml with backend, frontend, Qdrant
+- Dockerfiles for backend and frontend
+- Integration testing with real services
 
-**Remaining Slices:**
-- Slice 6: Docker setup
+**Phase 2 Completion:**
+- After Slice 6, Phase 2 (Infrastructure) will be complete
+- Phase 3 will add database models and API routes

@@ -10,10 +10,8 @@ from app.schemas.session import ConversationSession, ConversationTurn, SourceRef
 from app.services.session_manager import (
     MAX_CONTENT_LENGTH,
     MAX_HISTORY_TURNS,
-    MAX_SESSIONS,
     SessionManager,
 )
-
 
 # --- Fixtures ---
 
@@ -159,6 +157,7 @@ class TestSessionManagerGetSession:
 
         # Wait a tiny bit and retrieve
         import time
+
         time.sleep(0.01)
 
         retrieved = session_manager.get_session(session.session_id)
@@ -216,6 +215,7 @@ class TestSessionManagerUpdateSession:
         original_time = session.last_accessed
 
         import time
+
         time.sleep(0.01)
 
         session_manager.update_session(session.session_id, sample_turn)
@@ -369,7 +369,7 @@ class TestSessionManagerCleanupExpired:
 
     def test_cleanup_preserves_active_sessions(self, session_manager):
         """Preserves sessions that are not expired."""
-        session = session_manager.create_session()
+        session_manager.create_session()  # Create session to test preservation
 
         removed = session_manager.cleanup_expired()
 

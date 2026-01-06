@@ -11,7 +11,6 @@ from app.services.vector_store import (
     VectorStoreService,
 )
 
-
 # --- Fixtures ---
 
 
@@ -150,9 +149,7 @@ class TestVectorStoreServiceHealthCheck:
 
         assert result is False
 
-    def test_health_check_calls_get_collections(
-        self, vector_store, mock_qdrant_client
-    ):
+    def test_health_check_calls_get_collections(self, vector_store, mock_qdrant_client):
         """Calls get_collections to verify connectivity."""
         vector_store.health_check()
 
@@ -329,8 +326,16 @@ class TestVectorStoreServiceSearch:
         results = vector_store.search(query_vector=sample_vector)
 
         assert len(results) == 2
-        assert results[0] == {"id": "pattern-1", "score": 0.95, "payload": {"summary": "Pattern 1"}}
-        assert results[1] == {"id": "pattern-2", "score": 0.87, "payload": {"summary": "Pattern 2"}}
+        assert results[0] == {
+            "id": "pattern-1",
+            "score": 0.95,
+            "payload": {"summary": "Pattern 1"},
+        }
+        assert results[1] == {
+            "id": "pattern-2",
+            "score": 0.87,
+            "payload": {"summary": "Pattern 2"},
+        }
 
     def test_search_returns_empty_list_when_no_results(
         self, vector_store, mock_qdrant_client, sample_vector
@@ -349,9 +354,7 @@ class TestVectorStoreServiceSearch:
 class TestVectorStoreServiceGetCollectionInfo:
     """Tests for VectorStoreService.get_collection_info() method."""
 
-    def test_get_collection_info_returns_stats(
-        self, vector_store, mock_qdrant_client
-    ):
+    def test_get_collection_info_returns_stats(self, vector_store, mock_qdrant_client):
         """Returns collection statistics."""
         mock_info = MagicMock()
         mock_info.vectors_count = 100

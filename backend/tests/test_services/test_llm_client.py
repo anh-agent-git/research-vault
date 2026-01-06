@@ -44,14 +44,14 @@ class TestLLMClientInit:
         mock_instance, _ = mock_anthropic_client
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
 
             client = LLMClient()
 
-            assert client.api_key == "test-key"
+            assert client.api_key == "test-key"  # pragma: allowlist secret
             assert client.model == "claude-sonnet-4-20250514"
             assert client.max_retries == 3
             assert client.timeout_seconds == 120
@@ -59,19 +59,19 @@ class TestLLMClientInit:
     def test_init_accepts_custom_parameters(self, mock_anthropic_client):
         """Client accepts custom initialization parameters."""
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "default-key"
+            mock_settings.anthropic_api_key = "default-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
 
             client = LLMClient(
-                api_key="custom-key",
+                api_key="custom-key",  # pragma: allowlist secret
                 model=ModelID.HAIKU_3_5,
                 max_retries=5,
                 timeout_seconds=60,
             )
 
-            assert client.api_key == "custom-key"
+            assert client.api_key == "custom-key"  # pragma: allowlist secret
             assert client.model == ModelID.HAIKU_3_5
             assert client.max_retries == 5
             assert client.timeout_seconds == 60
@@ -79,7 +79,7 @@ class TestLLMClientInit:
     def test_init_validates_model_id(self, mock_anthropic_client):
         """Client validates model ID on initialization."""
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -103,7 +103,7 @@ class TestLLMClientComplete:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -128,7 +128,7 @@ class TestLLMClientComplete:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -159,7 +159,7 @@ class TestLLMClientComplete:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -199,7 +199,7 @@ class TestLLMClientRetry:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -227,7 +227,7 @@ class TestLLMClientRetry:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -256,7 +256,7 @@ class TestLLMClientRetry:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 2
             mock_settings.extraction_timeout_seconds = 120
@@ -286,7 +286,7 @@ class TestLLMClientRetry:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -320,7 +320,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -345,7 +345,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -373,7 +373,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -396,7 +396,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -419,7 +419,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -436,13 +436,13 @@ class TestLLMClientCompleteJson:
     async def test_complete_json_handles_array(self, mock_anthropic_client):
         """Complete_json handles JSON arrays."""
         mock_instance, mock_response_factory = mock_anthropic_client
-        json_content = '[1, 2, 3]'
+        json_content = "[1, 2, 3]"
         mock_instance.messages.create = AsyncMock(
             return_value=mock_response_factory(json_content)
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -464,7 +464,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -490,7 +490,7 @@ class TestLLMClientCompleteJson:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = "claude-sonnet-4-20250514"
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -601,7 +601,7 @@ class TestMultiModelSupport:
     def test_client_with_haiku_model(self, mock_anthropic_client):
         """Client can be initialized with Haiku 3.5."""
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = ModelID.SONNET_4
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -613,7 +613,7 @@ class TestMultiModelSupport:
     def test_multiple_clients_different_models(self, mock_anthropic_client):
         """Can create multiple clients with different models."""
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = ModelID.SONNET_4
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120
@@ -633,7 +633,7 @@ class TestMultiModelSupport:
         )
 
         with patch("app.services.llm_client.settings") as mock_settings:
-            mock_settings.anthropic_api_key = "test-key"
+            mock_settings.anthropic_api_key = "test-key"  # pragma: allowlist secret
             mock_settings.anthropic_model = ModelID.SONNET_4
             mock_settings.extraction_max_retries = 3
             mock_settings.extraction_timeout_seconds = 120

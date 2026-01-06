@@ -161,10 +161,9 @@ async def health_check() -> dict:
         pass
 
     # Check LangSmith tracing status
-    tracing_enabled = (
-        os.environ.get("LANGCHAIN_TRACING_V2") == "true"
-        and os.environ.get("LANGCHAIN_API_KEY")
-    )
+    tracing_enabled = os.environ.get(
+        "LANGCHAIN_TRACING_V2"
+    ) == "true" and os.environ.get("LANGCHAIN_API_KEY")
 
     # Determine overall status
     if db_ok and qdrant_ok:
