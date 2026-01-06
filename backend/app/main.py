@@ -7,8 +7,10 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from app.config import settings
+from app.db import async_session_maker
 
 logger = logging.getLogger(__name__)
 
@@ -131,20 +133,29 @@ app.add_middleware(
 
 @app.get("/health")
 async def health_check() -> dict:
-    """Health check endpoint with database and Qdrant status.
+    """Health check endpoint with database and Qdrant status."""
+    db_ok = False
 
-    Returns basic status. Full dependency checks will be added
-    when database and vector store services are implemented.
-    """
+    # Check database connection
+    try:
+        async with async_session_maker() as session:
+            await session.execute(text("SELECT 1"))
+            db_ok = True
+    except Exception:
+        pass
+
     # Check LangSmith tracing status
     tracing_enabled = (
         os.environ.get("LANGCHAIN_TRACING_V2") == "true"
         and os.environ.get("LANGCHAIN_API_KEY")
     )
 
+    # Determine overall status (degraded until Qdrant is configured)
+    status = "degraded" if db_ok else "error"
+
     return {
-        "status": "ok",
-        "database": "not_configured",
+        "status": status,
+        "database": "ok" if db_ok else "error",
         "qdrant": "not_configured",
         "sessions": 0,
         "tracing": "enabled" if tracing_enabled else "disabled",
