@@ -22,6 +22,17 @@ from app.services.prompts.metadata import (
     METADATA_EXTRACTION_SYSTEM,
     METADATA_EXTRACTION_USER,
 )
+from app.services.prompts.synthesis import (
+    SYNTHESIS_SYSTEM,
+    SYNTHESIS_USER,
+    PatternContext,
+    SourceReference,
+    SynthesisResult,
+    build_conversation_history,
+    build_pattern_context,
+    parse_synthesis_result,
+    sanitize_markdown,
+)
 from app.services.prompts.verification import (
     VERIFICATION_SYSTEM,
     VERIFICATION_USER,
@@ -64,4 +75,14 @@ __all__ = [
     # Metadata Extraction
     "METADATA_EXTRACTION_SYSTEM",
     "METADATA_EXTRACTION_USER",
+    # Synthesis
+    "SYNTHESIS_SYSTEM",
+    "SYNTHESIS_USER",
+    "PatternContext",
+    "SourceReference",
+    "SynthesisResult",
+    "build_conversation_history",
+    "build_pattern_context",
+    "parse_synthesis_result",
+    "sanitize_markdown",
 ]

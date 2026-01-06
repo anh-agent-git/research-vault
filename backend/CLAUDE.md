@@ -35,11 +35,21 @@ backend/
 │   │   ├── session.py       # ConversationSession, Turn, SourceReference
 │   │   └── paper.py         # PaperMetadataInput, PaperMetadataExtracted, PaperResponse
 │   └── services/
-│       ├── __init__.py      # Service exports
-│       ├── pdf_parser.py    # PDFParserService
-│       ├── llm_client.py    # LLMClient with retry
-│       ├── vector_store.py  # VectorStoreService (Qdrant)
-│       └── session_manager.py # SessionManager with TTL
+│       ├── __init__.py           # Service exports
+│       ├── pdf_parser.py         # PDFParserService
+│       ├── llm_client.py         # LLMClient with retry
+│       ├── vector_store.py       # VectorStoreService (Qdrant)
+│       ├── session_manager.py    # SessionManager with TTL
+│       ├── metadata_extractor.py # MetadataExtractor (paper metadata)
+│       ├── pattern_extractor.py  # PatternExtractor (3-pass pipeline)
+│       ├── embedding_service.py  # EmbeddingService (OpenAI embeddings)
+│       └── prompts/
+│           ├── __init__.py           # Prompt exports
+│           ├── metadata.py           # Metadata extraction prompts
+│           ├── evidence_inventory.py # Pass 1: Evidence inventory
+│           ├── extraction.py         # Pass 2: Pattern extraction
+│           ├── verification.py       # Pass 3: Verification
+│           └── synthesis.py          # Query synthesis prompts
 ├── alembic/
 │   ├── env.py               # Async migration environment
 │   └── versions/            # Migration files
@@ -104,6 +114,78 @@ from app.services import session_manager
 session = session_manager.create_session()
 session_manager.update_session(session_id, turn)
 session = session_manager.get_session(session_id)  # None if expired
+```
+
+### Pattern Extraction (3-Pass Pipeline)
+
+Evidence-anchored extraction using multi-model strategy:
+
+```python
+from app.services import PatternExtractor
+
+# Create extractor (uses Haiku for Pass 1/3, Sonnet for Pass 2)
+extractor = PatternExtractor()
+
+# Extract patterns from paper text
+result = await extractor.extract(
+    text="Paper content...",
+    metadata_context="Title: Example Paper"  # optional
+)
+
+# Result contains:
+# - result.patterns: ExtractionResult with extracted patterns
+# - result.evidence_inventory: EvidenceInventory from Pass 1
+# - result.verification: VerificationResult from Pass 3
+# - result.warnings: List of user-facing warnings
+# - result.is_successful: True if verification passed/warned
+# - result.pattern_count: Number of extracted patterns
+```
+
+### Embedding Service
+
+Generate embeddings for patterns:
+
+```python
+from app.services import EmbeddingService
+
+service = EmbeddingService()  # Uses OPENAI_API_KEY from settings
+
+# Prepare text from pattern data
+text = service.prepare_embedding_text({
+    "name": "Pattern Name",
+    "claim": "Main claim",
+    "evidence": "Supporting evidence",
+    "context": "Additional context",
+})  # Returns: "Pattern Name | Main claim | Supporting evidence | ..."
+
+# Generate single embedding
+result = await service.generate_embedding(text)
+embedding = result.embedding  # list[float], 1536 dimensions
+
+# Batch generate embeddings
+results = await service.generate_embeddings_batch(patterns)
+for pattern, embedding in results:
+    # Store pattern with its embedding
+    pass
+```
+
+### Metadata Extraction
+
+Extract paper metadata using LLM:
+
+```python
+from app.services import MetadataExtractor
+
+extractor = MetadataExtractor()
+
+# Extract from paper text with optional hints
+metadata = await extractor.extract(
+    text="Paper content...",
+    pdf_hints={"title": "From PDF metadata"},  # optional
+    user_overrides={"paper_type": "empirical"},  # optional, takes precedence
+)
+
+# metadata contains: title, authors, year, paper_type, one_sentence_summary
 ```
 
 ### Health Check Response
