@@ -37,8 +37,11 @@ jobs:
       - name: Create data directory
         run: mkdir -p data
 
-      - name: Run tests
-        run: uv run pytest tests/ -v --tb=short
+      - name: Run unit tests with coverage
+        run: uv run pytest tests/ -v --tb=short --cov=app --cov-report=term-missing --ignore=tests/test_integration
+
+      - name: Run integration tests
+        run: uv run pytest tests/test_integration/ -v --tb=short
 
   frontend:
     name: Frontend Build
@@ -62,6 +65,9 @@ jobs:
 
       - name: Run linter
         run: npm run lint
+
+      - name: Run tests
+        run: npm test
 
       - name: Build
         run: npm run build
