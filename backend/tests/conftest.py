@@ -1,6 +1,7 @@
 """Pytest fixtures for backend tests."""
 
 from collections.abc import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -79,3 +80,31 @@ def client_with_db(override_get_db) -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+
+# --- LLM Mock Fixtures ---
+
+
+@pytest.fixture
+def mock_llm_response():
+    """Factory for creating mock LLM responses."""
+
+    def _create_response(
+        content: str, input_tokens: int = 100, output_tokens: int = 50
+    ):
+        return MagicMock(
+            content=[MagicMock(text=content)],
+            model="claude-sonnet-4-20250514",
+            usage=MagicMock(input_tokens=input_tokens, output_tokens=output_tokens),
+        )
+
+    return _create_response
+
+
+@pytest.fixture
+def mock_anthropic_client(mock_llm_response):
+    """Mock the Anthropic client for LLM tests."""
+    with patch("app.services.llm_client.anthropic.AsyncAnthropic") as mock_class:
+        mock_instance = AsyncMock()
+        mock_class.return_value = mock_instance
+        yield mock_instance, mock_llm_response

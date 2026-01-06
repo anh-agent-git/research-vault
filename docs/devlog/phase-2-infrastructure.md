@@ -16,6 +16,7 @@ Backend and frontend scaffolding with database and vector store setup.
 |------|----------|--------------|
 | 2025-01-05 | Claude Opus 4.5 | Slice 1: Backend scaffolding (pyproject.toml, main.py, config.py) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 2: Database setup (async SQLAlchemy, Alembic, health check) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 3: Core services (PDF parser, LLM client) |
 
 ---
 
@@ -146,13 +147,73 @@ backend/
 
 ---
 
+## Slice 3: Core Services
+
+### What We Did
+
+- Created `backend/app/services/__init__.py`:
+  - Exports PDFParserService, LLMClient, and related classes
+
+- Created `backend/app/services/pdf_parser.py`:
+  - PyMuPDF-based PDF text extraction
+  - Page limit enforcement (default 50 pages)
+  - Encrypted PDF detection
+  - Metadata extraction (title, author, subject, creator)
+  - Validation without full parsing
+
+- Created `backend/app/services/llm_client.py`:
+  - Async Claude API client with retry logic
+  - Exponential backoff on rate limit and connection errors
+  - Model ID validation (catches typos/deprecated models)
+  - JSON response parsing with markdown handling
+  - Configurable max_retries and timeout
+
+- Created comprehensive tests:
+  - `tests/test_services/test_pdf_parser.py` - 28 tests
+  - `tests/test_services/test_llm_client.py` - 32 tests
+  - Updated `tests/conftest.py` with LLM mock fixtures
+
+### How We Verified
+
+```bash
+cd backend
+uv run ruff check .                    # All checks passed
+uv run pytest tests/ -v                # 82 tests passed
+```
+
+### Files Created
+
+```
+backend/
+├── app/
+│   └── services/
+│       ├── __init__.py          # Service exports
+│       ├── pdf_parser.py        # PDF text extraction
+│       └── llm_client.py        # Claude API client
+└── tests/
+    ├── conftest.py              # Updated with LLM mocks
+    └── test_services/
+        ├── __init__.py
+        ├── test_pdf_parser.py   # 28 tests
+        └── test_llm_client.py   # 32 tests
+```
+
+### Test Coverage
+
+| Service | Tests | Coverage |
+|---------|-------|----------|
+| PDFParserService | 28 | Init, parse, validate, errors, edge cases |
+| LLMClient | 32 | Init, complete, retry, JSON parsing, model support |
+| **Total New** | **60** | |
+
+---
+
 ## Open Questions / Next Steps
 
-**Next Slice (Slice 3):** Core services
-- `app/services/pdf_parser.py` - PyMuPDF text extraction
-- `app/services/llm_client.py` - Async Claude client
+**Next Slice (Slice 4):** More services
+- `app/services/vector_store.py` - Qdrant client wrapper
+- `app/services/session_manager.py` - In-memory session storage with TTL
 
 **Remaining Slices:**
-- Slice 4: More services (Vector store, Session manager)
 - Slice 5: Frontend scaffolding
 - Slice 6: Docker setup
