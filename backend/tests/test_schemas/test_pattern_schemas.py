@@ -113,6 +113,41 @@ class TestExtractedPattern:
         pattern = ExtractedPattern(name="Test", claim="Claim", tags=[])
         assert pattern.tags == []
 
+    def test_invalid_with_whitespace_only_strings(self) -> None:
+        """Whitespace-only strings don't count as valid content."""
+        with pytest.raises(ValidationError) as exc_info:
+            ExtractedPattern(name="Test", claim="   ", evidence="\t\n")
+        assert "at least one" in str(exc_info.value).lower()
+
+    def test_valid_with_whitespace_padded_content(self) -> None:
+        """Content with whitespace padding is valid if has non-whitespace."""
+        pattern = ExtractedPattern(name="Test", claim="  Valid claim  ")
+        assert pattern.claim == "  Valid claim  "
+        assert pattern.content_fields == ["claim"]
+
+    def test_model_dump_serialization(self) -> None:
+        """Schema can be serialized to dict."""
+        pattern = ExtractedPattern(
+            name="Test Pattern",
+            claim="Main assertion",
+            tags=["tag1"],
+        )
+        data = pattern.model_dump()
+        assert data["name"] == "Test Pattern"
+        assert data["claim"] == "Main assertion"
+        assert data["evidence"] is None
+        assert data["tags"] == ["tag1"]
+
+    def test_model_validate_from_dict(self) -> None:
+        """Schema can be created from dict."""
+        data = {
+            "name": "From Dict",
+            "evidence": "Some evidence",
+        }
+        pattern = ExtractedPattern.model_validate(data)
+        assert pattern.name == "From Dict"
+        assert pattern.evidence == "Some evidence"
+
 
 class TestExtractedPatternResponse:
     """Tests for ExtractedPatternResponse schema (upload response)."""
@@ -168,6 +203,24 @@ class TestExtractedPatternResponse:
         assert response.claim is None
         assert response.evidence is None
         assert response.context is None
+
+    def test_model_dump_serialization(self) -> None:
+        """Response can be serialized to dict."""
+        response = ExtractedPatternResponse(
+            temp_id="temp-abc",
+            name="Test Pattern",
+            claim="Main claim",
+            tags=["tag1", "tag2"],
+        )
+        data = response.model_dump()
+        assert data["temp_id"] == "temp-abc"
+        assert data["name"] == "Test Pattern"
+        assert data["tags"] == ["tag1", "tag2"]
+
+    def test_name_required(self) -> None:
+        """Name is required."""
+        with pytest.raises(ValidationError):
+            ExtractedPatternResponse(temp_id="temp-123")  # type: ignore[call-arg]
 
 
 class TestPatternResponse:
@@ -245,6 +298,36 @@ class TestPatternResponse:
             )
             assert response.status == status
 
+    def test_invalid_status_string(self) -> None:
+        """Invalid status string should raise error."""
+        with pytest.raises(ValidationError) as exc_info:
+            PatternResponse(
+                id="uuid",
+                paper_id="paper-uuid",
+                name="Test",
+                tags=[],
+                status="invalid_status",  # type: ignore[arg-type]
+                created_at="2024-01-15T10:30:00Z",
+                updated_at="2024-01-15T10:30:00Z",
+            )
+        assert "status" in str(exc_info.value).lower()
+
+    def test_model_dump_serialization(self) -> None:
+        """Response can be serialized to dict."""
+        response = PatternResponse(
+            id="uuid-123",
+            paper_id="paper-uuid",
+            name="Test",
+            claim="Main claim",
+            tags=["tag1"],
+            status=PatternStatus.approved,
+            created_at="2024-01-15T10:30:00Z",
+            updated_at="2024-01-15T10:30:00Z",
+        )
+        data = response.model_dump()
+        assert data["id"] == "uuid-123"
+        assert data["status"] == "approved"
+
 
 class TestPatternUpdateRequest:
     """Tests for PatternUpdateRequest schema (PUT endpoint)."""
@@ -298,6 +381,26 @@ class TestPatternUpdateRequest:
         """Empty string name is invalid."""
         with pytest.raises(ValidationError):
             PatternUpdateRequest(name="")
+
+    def test_empty_string_claim_is_valid(self) -> None:
+        """Empty string claim is valid (allows clearing the field)."""
+        request = PatternUpdateRequest(claim="")
+        assert request.claim == ""
+
+    def test_empty_string_evidence_is_valid(self) -> None:
+        """Empty string evidence is valid (allows clearing the field)."""
+        request = PatternUpdateRequest(evidence="")
+        assert request.evidence == ""
+
+    def test_empty_string_context_is_valid(self) -> None:
+        """Empty string context is valid (allows clearing the field)."""
+        request = PatternUpdateRequest(context="")
+        assert request.context == ""
+
+    def test_empty_tags_list_is_valid(self) -> None:
+        """Empty tags list is valid (allows clearing tags)."""
+        request = PatternUpdateRequest(tags=[])
+        assert request.tags == []
 
 
 class TestPatternDecision:
@@ -409,3 +512,26 @@ class TestPatternReviewResponse:
                 saved_count=1,
                 # Missing rejected_count and patterns
             )
+
+    def test_negative_counts_allowed_by_schema(self) -> None:
+        """Schema allows negative counts (API layer should validate)."""
+        # Note: Pydantic doesn't restrict int sign by default
+        # Business logic validation happens at API layer
+        response = PatternReviewResponse(
+            saved_count=-1,
+            rejected_count=-2,
+            patterns=[],
+        )
+        assert response.saved_count == -1
+
+    def test_model_dump_serialization(self) -> None:
+        """Response can be serialized to dict."""
+        response = PatternReviewResponse(
+            saved_count=2,
+            rejected_count=1,
+            patterns=[],
+        )
+        data = response.model_dump()
+        assert data["saved_count"] == 2
+        assert data["rejected_count"] == 1
+        assert data["patterns"] == []
