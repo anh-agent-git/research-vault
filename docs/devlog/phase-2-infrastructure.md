@@ -19,6 +19,7 @@ Backend and frontend scaffolding with database and vector store setup.
 | 2026-01-05 | Claude Opus 4.5 | Slice 3: Core services (PDF parser, LLM client) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 4: More services (VectorStoreService, SessionManager) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 5: Frontend scaffolding (Next.js 16.x, health check UI) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 6: Docker setup (Dockerfiles, docker-compose, CI workflow) |
 
 ---
 
@@ -383,13 +384,101 @@ frontend/
 
 ---
 
-## Open Questions / Next Steps
+## Slice 6: Docker Setup
 
-**Next Slice (Slice 6):** Docker setup
-- docker-compose.yml with backend, frontend, Qdrant
-- Dockerfiles for backend and frontend
-- Integration testing with real services
+### What We Did
 
-**Phase 2 Completion:**
-- After Slice 6, Phase 2 (Infrastructure) will be complete
-- Phase 3 will add database models and API routes
+- Created `backend/Dockerfile`:
+  - Python 3.12-slim base image
+  - UV package manager for fast dependency installation
+  - Copies alembic migrations for database setup
+  - Runs migrations on startup via CMD
+  - Creates data directory for SQLite
+
+- Created `frontend/Dockerfile`:
+  - Multi-stage build for minimal production image
+  - Node 20-alpine base for builder and runner
+  - Standalone Next.js output for optimal Docker deployment
+  - Non-root user (nextjs) for security
+  - Build-time API URL configuration
+
+- Created `.dockerignore` files for both services:
+  - Backend: Excludes .venv, tests, __pycache__, data/
+  - Frontend: Excludes node_modules, .next, coverage/
+
+- Created `docker-compose.yml`:
+  - Frontend service on port 3000
+  - Backend service on port 8000
+  - Qdrant service on ports 6333 (REST) and 6334 (gRPC)
+  - Named volumes for data persistence
+  - Environment variable passthrough for API keys
+  - LangSmith tracing configuration
+  - Proper service dependencies
+
+- Created `.github/workflows/ci.yml`:
+  - Backend job: ruff check, ruff format --check, pytest
+  - Frontend job: npm lint, npm build
+  - Runs on push to main and pull requests
+
+### How We Verified
+
+```bash
+# Build backend image
+docker build -t research-vault-backend ./backend
+# Build frontend image
+docker build -t research-vault-frontend ./frontend
+# Validate docker-compose configuration
+docker compose config
+# Start full stack
+docker compose up -d
+# Test health endpoints
+curl http://localhost:8000/health
+# {"status":"ok","database":"ok","qdrant":"ok","sessions":0,"tracing":"disabled"}
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000
+# 200
+curl http://localhost:6333/healthz
+# healthz check passed
+```
+
+### Files Created
+
+```
+.github/
+└── workflows/
+    └── ci.yml                  # CI pipeline
+
+backend/
+├── Dockerfile                  # Python 3.12 + UV
+└── .dockerignore               # Exclude dev files
+
+frontend/
+├── Dockerfile                  # Multi-stage Node build
+└── .dockerignore               # Exclude dev files
+
+docker-compose.yml              # Full stack orchestration
+```
+
+### Docker Architecture
+
+| Service | Base Image | Port | Depends On |
+|---------|------------|------|------------|
+| frontend | node:20-alpine | 3000 | backend |
+| backend | python:3.12-slim | 8000 | qdrant |
+| qdrant | qdrant/qdrant:v1.16.2 | 6333, 6334 | - |
+
+---
+
+## Phase 2 Complete
+
+Phase 2 (Infrastructure Migration) is now complete with all 6 slices:
+
+1. **Slice 1**: Backend scaffolding (FastAPI, config)
+2. **Slice 2**: Database setup (async SQLAlchemy, Alembic)
+3. **Slice 3**: Core services (PDF parser, LLM client)
+4. **Slice 4**: More services (VectorStore, SessionManager)
+5. **Slice 5**: Frontend scaffolding (Next.js 16, health UI)
+6. **Slice 6**: Docker setup (containers, CI workflow)
+
+**Total Tests**: 160 backend tests passing
+
+**Next Phase (Phase 3)**: Database models and API routes for papers and patterns
