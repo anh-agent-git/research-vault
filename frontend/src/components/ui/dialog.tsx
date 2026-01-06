@@ -212,11 +212,21 @@ function DialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
 // DialogClose
 // ============================================================================
 
-function DialogClose({
-  children,
-  ...props
-}: HTMLAttributes<HTMLButtonElement>) {
+interface DialogCloseProps extends HTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+}
+
+function DialogClose({ children, asChild, ...props }: DialogCloseProps) {
   const { setOpen } = useDialogContext();
+
+  if (asChild) {
+    // For asChild, wrap children to add click handler
+    return (
+      <span onClick={() => setOpen(false)} {...props}>
+        {children}
+      </span>
+    );
+  }
 
   return (
     <button type="button" onClick={() => setOpen(false)} {...props}>
