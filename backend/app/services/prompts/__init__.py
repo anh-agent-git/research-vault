@@ -9,9 +9,29 @@ from app.services.prompts.evidence_inventory import (
     EvidenceType,
     parse_evidence_inventory,
 )
+from app.services.prompts.extraction import (
+    EXTRACTION_SYSTEM,
+    EXTRACTION_USER,
+    ExtractedPatternRaw,
+    ExtractionResult,
+    PatternConfidence,
+    extract_evidence_ids,
+    parse_extraction_result,
+)
 from app.services.prompts.metadata import (
     METADATA_EXTRACTION_SYSTEM,
     METADATA_EXTRACTION_USER,
+)
+from app.services.prompts.verification import (
+    VERIFICATION_SYSTEM,
+    VERIFICATION_USER,
+    AccuracyConcern,
+    CitationIssue,
+    IssueSeverity,
+    VerificationResult,
+    VerificationStatus,
+    compute_verification_status,
+    parse_verification_result,
 )
 
 __all__ = [
@@ -23,6 +43,24 @@ __all__ = [
     "EvidenceItem",
     "EvidenceType",
     "parse_evidence_inventory",
+    # Pattern Extraction (Pass 2)
+    "EXTRACTION_SYSTEM",
+    "EXTRACTION_USER",
+    "ExtractionResult",
+    "ExtractedPatternRaw",
+    "PatternConfidence",
+    "extract_evidence_ids",
+    "parse_extraction_result",
+    # Verification (Pass 3)
+    "VERIFICATION_SYSTEM",
+    "VERIFICATION_USER",
+    "AccuracyConcern",
+    "CitationIssue",
+    "IssueSeverity",
+    "VerificationResult",
+    "VerificationStatus",
+    "compute_verification_status",
+    "parse_verification_result",
     # Metadata Extraction
     "METADATA_EXTRACTION_SYSTEM",
     "METADATA_EXTRACTION_USER",
