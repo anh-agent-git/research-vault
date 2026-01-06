@@ -3,12 +3,16 @@
 import uuid
 from datetime import UTC, date, datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import JSON, Date, DateTime, Index, String, Text
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.pattern import Pattern
 
 
 def _utc_now() -> datetime:
@@ -58,7 +62,10 @@ class Paper(Base):
         DateTime, default=_utc_now, onupdate=_utc_now
     )
 
-    # Relationship to patterns - added in Slice 2 when Pattern model exists
+    # Relationship to patterns
+    patterns: Mapped[list["Pattern"]] = relationship(
+        back_populates="paper", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_papers_status_type_date", "status", "type", "published_date"),
