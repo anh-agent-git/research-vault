@@ -1,5 +1,7 @@
 """Tests for health check endpoint."""
 
+from unittest.mock import AsyncMock, patch
+
 
 def test_health_endpoint_returns_status(client):
     """Health endpoint should return a valid response structure."""
@@ -53,4 +55,41 @@ def test_health_endpoint_status_logic(client):
     if data["database"] == "ok":
         assert data["status"] == "degraded"
     else:
+        assert data["status"] == "error"
+
+
+def test_health_endpoint_database_failure(client):
+    """Health endpoint should return error status when database connection fails."""
+    # Create a mock session maker that raises an exception
+    mock_session = AsyncMock()
+    mock_session.__aenter__ = AsyncMock(side_effect=Exception("Connection failed"))
+    mock_session.__aexit__ = AsyncMock()
+
+    mock_session_maker = AsyncMock(return_value=mock_session)
+
+    with patch("app.main.async_session_maker", mock_session_maker):
+        response = client.get("/health")
+        data = response.json()
+
+        assert data["database"] == "error"
+        assert data["status"] == "error"
+
+
+def test_health_endpoint_database_query_failure(client):
+    """Health endpoint should handle query execution failures gracefully."""
+    # Create a mock that succeeds on context entry but fails on execute
+    mock_session = AsyncMock()
+    mock_session.execute = AsyncMock(side_effect=Exception("Query failed"))
+
+    mock_context = AsyncMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+
+    mock_session_maker = AsyncMock(return_value=mock_context)
+
+    with patch("app.main.async_session_maker", mock_session_maker):
+        response = client.get("/health")
+        data = response.json()
+
+        assert data["database"] == "error"
         assert data["status"] == "error"
