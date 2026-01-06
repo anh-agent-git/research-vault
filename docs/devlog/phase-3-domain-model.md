@@ -17,6 +17,9 @@ Database models, Pydantic schemas, and Alembic migrations for the core domain en
 | 2026-01-05 | Claude Opus 4.5 | Slice 1: Paper model + enums (PR #12) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 2: Pattern model + enum (PR #13) |
 | 2026-01-05 | Claude Opus 4.5 | Slice 3: Paper Pydantic schemas (PR #14) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 4: Pattern Pydantic schemas (PR #15) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 5: Initial Alembic migration (PR #16) |
+| 2026-01-05 | Claude Opus 4.5 | Slice 6: Code review fixes - whitespace & CHECK constraint (PR #17) |
 
 ---
 
@@ -143,6 +146,84 @@ backend/tests/test_schemas/test_paper_schemas.py  # 19 tests
 
 ---
 
+## Slice 4: Pattern Pydantic Schemas
+
+**PR:** #15
+
+### What We Did
+
+- Created `ExtractedPattern` - internal DTO with validation (at least one content field required)
+- Created `ExtractedPatternResponse` - for upload responses with temp_id
+- Created `PatternResponse` - full pattern for API responses
+- Created `PatternUpdateRequest` - for PUT endpoints with field validation
+- Created `PatternDecision` and `PatternReviewRequest` - for review workflow
+- Created `PatternReviewResponse` - review submission response
+
+### Files Created
+
+```
+backend/app/schemas/pattern.py           # Pattern schemas
+backend/app/schemas/__init__.py          # Updated exports
+backend/tests/test_schemas/test_pattern_schemas.py  # 40 tests
+```
+
+### Tests (40)
+
+- ExtractedPattern validation and content_fields (16)
+- ExtractedPatternResponse serialization (7)
+- PatternResponse required/optional fields (7)
+- PatternUpdateRequest field validation (5)
+- PatternDecision/ReviewRequest/Response (5)
+
+---
+
+## Slice 5: Initial Alembic Migration
+
+**PR:** #16
+
+### What We Did
+
+- Created initial Alembic migration for papers and patterns tables
+- Papers table with all fields and composite index
+- Patterns table with foreign key to papers (CASCADE delete)
+- Three indexes on patterns: paper_id, status, (paper_id, status)
+
+### Files Created
+
+```
+backend/alembic/versions/41bbec096be1_initial_schema_with_papers_and_patterns_.py
+```
+
+---
+
+## Slice 6: Code Review Fixes
+
+**PR:** #17
+
+### What We Did
+
+Based on code review feedback:
+- Fixed `has_valid_content` to reject whitespace-only strings
+- Fixed `content_fields` to exclude whitespace-only strings
+- Added `ck_patterns_has_content` CHECK constraint to patterns table
+- Created migration to add CHECK constraint to existing table
+
+### Files Modified
+
+```
+backend/app/models/pattern.py            # Updated properties and added CHECK constraint
+backend/alembic/versions/d80764b2a617_add_check_constraint_for_pattern_content.py
+backend/tests/test_models/test_pattern.py  # 6 new tests
+```
+
+### Tests (6)
+
+- Whitespace handling in has_valid_content (2)
+- Whitespace handling in content_fields (2)
+- CHECK constraint enforcement (2)
+
+---
+
 ## Test Summary
 
 | Slice | New Tests | Total |
@@ -150,12 +231,19 @@ backend/tests/test_schemas/test_paper_schemas.py  # 19 tests
 | Slice 1 (Paper model) | 15 | 175 |
 | Slice 2 (Pattern model) | 25 | 200 |
 | Slice 3 (Paper schemas) | 19 | 219 |
-| **Total Phase 3** | **59** | **219** |
+| Slice 4 (Pattern schemas) | 40 | 259 |
+| Slice 5 (Alembic migration) | 0 | 259 |
+| Slice 6 (Code review fixes) | 6 | 265 |
+| **Total Phase 3** | **105** | **265** |
 
 ---
 
-## Open Questions / Next Steps
+## Phase 3 Complete
 
-- [ ] Slice 4: Pattern Pydantic schemas (ExtractedPattern, PatternResponse, etc.)
-- [ ] Slice 5: Alembic migration for initial schema
-- [ ] Consider adding `PaperUploadResponse` schema (depends on Pattern schemas)
+All domain model implementation tasks completed:
+- [x] Paper model with enums
+- [x] Pattern model with Claim/Evidence/Context schema
+- [x] Paper Pydantic schemas
+- [x] Pattern Pydantic schemas
+- [x] Alembic migrations (initial + CHECK constraint)
+- [x] 105 new tests added
