@@ -34,22 +34,27 @@ backend/
 │   │   ├── __init__.py
 │   │   ├── session.py       # ConversationSession, Turn, SourceReference
 │   │   └── paper.py         # PaperMetadataInput, PaperMetadataExtracted, PaperResponse
-│   └── services/
-│       ├── __init__.py           # Service exports
-│       ├── pdf_parser.py         # PDFParserService
-│       ├── llm_client.py         # LLMClient with retry
-│       ├── vector_store.py       # VectorStoreService (Qdrant)
-│       ├── session_manager.py    # SessionManager with TTL
-│       ├── metadata_extractor.py # MetadataExtractor (paper metadata)
-│       ├── pattern_extractor.py  # PatternExtractor (3-pass pipeline)
-│       ├── embedding_service.py  # EmbeddingService (OpenAI embeddings)
-│       └── prompts/
-│           ├── __init__.py           # Prompt exports
-│           ├── metadata.py           # Metadata extraction prompts
-│           ├── evidence_inventory.py # Pass 1: Evidence inventory
-│           ├── extraction.py         # Pass 2: Pattern extraction
-│           ├── verification.py       # Pass 3: Verification
-│           └── synthesis.py          # Query synthesis prompts
+│   ├── services/
+│   │   ├── __init__.py           # Service exports
+│   │   ├── pdf_parser.py         # PDFParserService
+│   │   ├── llm_client.py         # LLMClient with retry
+│   │   ├── vector_store.py       # VectorStoreService (Qdrant)
+│   │   ├── session_manager.py    # SessionManager with TTL
+│   │   ├── metadata_extractor.py # MetadataExtractor (paper metadata)
+│   │   ├── pattern_extractor.py  # PatternExtractor (3-pass pipeline)
+│   │   ├── embedding_service.py  # EmbeddingService (OpenAI embeddings)
+│   │   └── prompts/
+│   │       ├── __init__.py           # Prompt exports
+│   │       ├── metadata.py           # Metadata extraction prompts
+│   │       ├── evidence_inventory.py # Pass 1: Evidence inventory
+│   │       ├── extraction.py         # Pass 2: Pattern extraction
+│   │       ├── verification.py       # Pass 3: Verification
+│   │       └── synthesis.py          # Query synthesis prompts
+│   └── workflows/
+│       ├── __init__.py       # Workflow exports
+│       ├── ingestion.py      # PDF → Paper + Patterns
+│       ├── review.py         # Pattern decisions → Embeddings + Vector store
+│       └── query.py          # Query → Search → Synthesize
 ├── alembic/
 │   ├── env.py               # Async migration environment
 │   └── versions/            # Migration files
@@ -57,11 +62,15 @@ backend/
 │   ├── conftest.py          # Fixtures (db, mocks)
 │   ├── test_api/
 │   │   └── test_health.py
-│   └── test_services/
-│       ├── test_pdf_parser.py
-│       ├── test_llm_client.py
-│       ├── test_vector_store.py
-│       └── test_session_manager.py
+│   ├── test_services/
+│   │   ├── test_pdf_parser.py
+│   │   ├── test_llm_client.py
+│   │   ├── test_vector_store.py
+│   │   └── test_session_manager.py
+│   └── test_workflows/
+│       ├── test_ingestion.py    # Ingestion workflow tests
+│       ├── test_review.py       # Review workflow tests
+│       └── test_query.py        # Query workflow tests
 ├── pyproject.toml
 ├── uv.lock
 ├── alembic.ini
@@ -199,6 +208,80 @@ metadata = await extractor.extract(
   "tracing": "enabled|disabled"
 }
 ```
+
+### Workflows
+
+Workflows orchestrate services into end-to-end pipelines. All workflows use async patterns and support dependency injection for testing.
+
+#### Ingestion Workflow
+
+Processes uploaded PDFs into papers and patterns:
+
+```python
+from app.workflows import IngestionWorkflow, IngestionInput
+
+workflow = IngestionWorkflow(db=session)
+result = await workflow.run(IngestionInput(
+    pdf_bytes=pdf_content,
+    user_metadata=PaperMetadataInput(title="Custom Title"),  # optional
+))
+
+# result.success: bool
+# result.paper_id: str (UUID)
+# result.pattern_count: int
+# result.patterns: list[ExtractedPatternResponse]
+# result.warnings: list[str]
+```
+
+Flow: Parse PDF → Extract metadata → Create Paper → Extract patterns → Create Patterns (pending)
+
+#### Review Workflow
+
+Processes pattern review decisions:
+
+```python
+from app.workflows import ReviewWorkflow
+from app.schemas.pattern import PatternDecision
+
+workflow = ReviewWorkflow(db=session)
+result = await workflow.run(
+    paper_id="paper-uuid",
+    decisions=[
+        PatternDecision(temp_id="pattern-1", approved=True),
+        PatternDecision(temp_id="pattern-2", approved=False),
+    ],
+)
+
+# result.approved_count: int
+# result.rejected_count: int
+# result.paper_status_updated: bool (True if all patterns reviewed)
+# result.errors: list[str]
+```
+
+Flow: Validate patterns → Embed approved → Upsert to vector store → Update status
+
+#### Query Workflow
+
+Searches patterns and synthesizes answers:
+
+```python
+from app.workflows import QueryWorkflow, QueryInput
+
+workflow = QueryWorkflow(db=session)
+result = await workflow.run(QueryInput(
+    query="What patterns exist about agent memory?",
+    session_id=None,  # None creates new session
+    limit=10,
+))
+
+# result.answer: str (with [P:id] citations)
+# result.sources: list[SourceReference]
+# result.confidence: str (high/medium/low)
+# result.follow_up_suggestions: list[str]
+# result.session_id: str (for follow-up queries)
+```
+
+Flow: Get/create session → Embed query → Search vectors → Retrieve patterns → Synthesize → Update session
 
 ## Common Commands
 
