@@ -173,13 +173,16 @@ def mock_vector_store() -> MagicMock:
         vectors[pattern_id] = {"embedding": embedding, "payload": payload}
 
     async def search(query_vector, limit=10):
-        # Return all stored vectors as results (sorted by mock score)
+        # Return all stored vectors as results (matching real VectorStoreService.search)
         results = []
-        for pattern_id, _data in list(vectors.items())[:limit]:
-            result = MagicMock()
-            result.id = pattern_id
-            result.score = 0.95 - len(results) * 0.05  # Decreasing scores
-            results.append(result)
+        for pattern_id, data in list(vectors.items())[:limit]:
+            results.append(
+                {
+                    "id": pattern_id,
+                    "score": 0.95 - len(results) * 0.05,  # Decreasing scores
+                    "payload": data["payload"],
+                }
+            )
         return results
 
     async def delete_by_paper_id(paper_id):
@@ -208,7 +211,7 @@ def mock_llm_client() -> MagicMock:
     """Mock LLM client returning deterministic synthesis results."""
     client = MagicMock()
 
-    async def complete_json(system_prompt, user_message):
+    async def complete_json(system_prompt, user_prompt):
         # Parse pattern IDs from context if available
         # Return a deterministic response
         return {

@@ -50,11 +50,10 @@ class TestQueryWorkflow:
     def mock_vector_store(self) -> AsyncMock:
         """Create mock vector store service."""
         store = AsyncMock()
-        # Return mock search results
-        result = MagicMock()
-        result.id = "pattern-123"
-        result.score = 0.95
-        store.search.return_value = [result]
+        # Return mock search results as dicts (matching real VectorStoreService.search)
+        store.search.return_value = [
+            {"id": "pattern-123", "score": 0.95, "payload": {}}
+        ]
         return store
 
     @pytest.fixture

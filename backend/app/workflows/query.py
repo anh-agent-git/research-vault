@@ -161,7 +161,7 @@ class QueryWorkflow:
             return self._create_no_results_response(session.session_id, input.query)
 
         # Step 4: Retrieve pattern details
-        pattern_ids = [r.id for r in search_results]
+        pattern_ids = [r["id"] for r in search_results]
         patterns_with_papers = await self._get_patterns_with_papers(pattern_ids)
 
         if not patterns_with_papers:
@@ -322,7 +322,7 @@ class QueryWorkflow:
 
         response = await self.llm_client.complete_json(
             system_prompt=SYNTHESIS_SYSTEM,
-            user_message=user_prompt,
+            user_prompt=user_prompt,
         )
 
         return parse_synthesis_result(response)
