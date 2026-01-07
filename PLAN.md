@@ -182,16 +182,16 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 
 **Dependencies:** Phase 6 (API exists)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Set up TypeScript types | ⬜ | Match API schemas |
-| Set up API client | ⬜ | Fetch wrapper |
-| Build Upload page | ⬜ | |
-| Build Review page | ⬜ | |
-| Build Library page | ⬜ | |
-| Build Query page | ⬜ | |
+| Set up TypeScript types | ✅ | Match API schemas (PR #26) |
+| Set up API client | ✅ | Fetch wrapper with error handling (PR #26) |
+| Build Upload page | ✅ | PDF/text upload with metadata (PR #26) |
+| Build Review page | ✅ | Pattern cards, approve/reject (PR #26) |
+| Build Library page | ✅ | Filters, pagination, pattern management (PR #26) |
+| Build Query page | ✅ | Conversation history, citations (PR #26) |
 
 **Devlog:** [`docs/devlog/phase-7-frontend.md`](docs/devlog/phase-7-frontend.md)
 
@@ -205,15 +205,15 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 
 **Dependencies:** Phase 7 (full stack exists)
 
-**Status:** ⬜ Not started
+**Status:** ✅ Complete
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Write integration tests | ⬜ | Full flow tests |
-| Set up GitHub Actions CI | ⬜ | Tests, linting |
-| Complete documentation | ⬜ | ARCHITECTURE.md, OPERATIONS.md, etc. |
-| Security verification | ⬜ | grep for secrets, paths |
-| Final polish | ⬜ | |
+| Write integration tests | ✅ | 43 tests: full pipeline, errors, partial success (PR #27) |
+| Enhance CI workflow | ✅ | Coverage reporting, frontend tests, integration stage (PR #28) |
+| Complete documentation | ✅ | GETTING_STARTED.md (PR #29), OPERATIONS.md, ARCHITECTURE.md (PR #30) |
+| Security verification | ✅ | scripts/security_check.sh (PR #31) |
+| Final polish | ✅ | Updated CONTRIBUTING.md, PLAN.md (PR #31) |
 
 **Devlog:** [`docs/devlog/phase-8-polish.md`](docs/devlog/phase-8-polish.md)
 
@@ -230,9 +230,9 @@ This document tracks the implementation roadmap for Research Vault. Update statu
 | Phase 4: Extraction | ✅ | 6/6 |
 | Phase 5: Workflows | ✅ | 4/4 |
 | Phase 6: API | ✅ | 4/4 |
-| Phase 7: Frontend | ⬜ | 0/6 |
-| Phase 8: Polish | ⬜ | 0/5 |
-| **Total** | 🟡 | **43/54** |
+| Phase 7: Frontend | ✅ | 6/6 |
+| Phase 8: Polish | ✅ | 5/5 |
+| **Total** | ✅ | **54/54** |
 
 ---
 
