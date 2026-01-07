@@ -77,6 +77,16 @@ async def lifespan(app: FastAPI):
             "Set this environment variable to enable vector search."
         )
 
+    # Ensure Qdrant collection exists
+    vector_store = VectorStoreService()
+    if vector_store.ensure_collection():
+        logger.info("Qdrant collection 'patterns' ready")
+    else:
+        logger.warning(
+            "Failed to ensure Qdrant collection - vector search may not work. "
+            "Check that Qdrant is running."
+        )
+
     # Start session cleanup task
     await session_manager.start_cleanup_task()
 
