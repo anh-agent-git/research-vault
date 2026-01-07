@@ -128,9 +128,9 @@ class TestPDFParserServiceInit:
     """Tests for PDFParserService initialization."""
 
     def test_init_default_max_pages(self):
-        """Parser initializes with default max pages of 50."""
+        """Parser initializes with default max pages of 200."""
         parser = PDFParserService()
-        assert parser.max_pages == 50
+        assert parser.max_pages == 200
 
     def test_init_custom_max_pages(self):
         """Parser accepts custom max pages."""
