@@ -63,10 +63,3 @@ papers/
 
 # Claude Code settings (personal dev environment)
 .claude/
-
-# Project tracking (local only - not for OSS)
-PLAN.md
-
-# Lock files (optional - uncomment if you want to ignore)
-# uv.lock
-# package-lock.json

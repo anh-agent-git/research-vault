@@ -318,6 +318,209 @@ docker compose up --scale frontend=1 --scale backend=1
 - **Domain Model**: See `docs/DOMAIN_MODEL.md` for entity relationships
 - **API Spec**: See `docs/API_SPEC.md` for endpoint details
 
+## Quick Reference: All Commands
+
+### One-Time Setup
+
+```bash
+# Clone repository
+git clone https://github.com/aakashsharan/research-vault.git
+cd research-vault
+
+# Create environment files
+cp .env.example .env
+cp backend/.env.example backend/.env
+# Edit both files with your API keys:
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   OPENAI_API_KEY=sk-proj-...
+```
+
+### Starting Services
+
+**Option A: Docker Compose (Recommended)**
+```bash
+# Start everything (first time - builds images)
+docker compose up --build
+
+# Start everything (subsequent runs)
+docker compose up
+
+# Start in background
+docker compose up -d
+
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (clean slate)
+docker compose down -v
+```
+
+**Option B: Manual Development Setup**
+```bash
+# Terminal 1: Qdrant
+docker compose up qdrant
+
+# Terminal 2: Backend
+cd backend
+uv sync
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload
+
+# Terminal 3: Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Service URLs
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Frontend | http://localhost:3000 | Web UI |
+| Backend API | http://localhost:8000 | REST API |
+| API Docs | http://localhost:8000/docs | Swagger UI |
+| Health Check | http://localhost:8000/health | Service status |
+| Qdrant | http://localhost:6333 | Vector DB dashboard |
+
+### Running Tests
+
+```bash
+# Backend tests (619 tests)
+cd backend
+uv run pytest                                    # All tests
+uv run pytest -v                                 # Verbose
+uv run pytest tests/test_api/                    # API tests only
+uv run pytest tests/test_integration/            # Integration tests only
+uv run pytest --cov=app --cov-report=html        # With coverage report
+
+# Frontend tests (23 tests)
+cd frontend
+npm test                                         # Run tests
+npm run test:watch                               # Watch mode
+```
+
+### Linting & Formatting
+
+```bash
+# Backend
+cd backend
+uv run ruff check .                              # Lint
+uv run ruff check --fix .                        # Lint + auto-fix
+uv run ruff format .                             # Format
+
+# Frontend
+cd frontend
+npm run lint                                     # ESLint
+npm run build                                    # Type check + build
+```
+
+### Database Operations
+
+```bash
+cd backend
+
+# Apply migrations
+uv run alembic upgrade head
+
+# Check migration status
+uv run alembic current
+
+# Create new migration
+uv run alembic revision --autogenerate -m "description"
+
+# Rollback one migration
+uv run alembic downgrade -1
+
+# Reset database (WARNING: deletes data)
+rm -rf data/research.db
+uv run alembic upgrade head
+```
+
+### Security Checks
+
+```bash
+# Run security scan
+bash scripts/security_check.sh
+
+# Run pre-commit hooks manually
+pre-commit run --all-files
+```
+
+### Useful curl Commands
+
+```bash
+# Health check
+curl http://localhost:8000/health | jq
+
+# List papers
+curl http://localhost:8000/api/papers | jq
+
+# Upload text content
+curl -X POST http://localhost:8000/api/papers \
+  -F "text=Your paper content here..." \
+  -F "title=My Paper Title" \
+  -F "type=research_paper" | jq
+
+# Query the library
+curl -X POST http://localhost:8000/api/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What patterns exist about agent memory?"}' | jq
+```
+
+## Pre-Release Testing Checklist
+
+Before releasing or sharing the app, verify these work:
+
+### 1. Fresh Setup Test
+```bash
+# Clean slate
+docker compose down -v
+rm -rf backend/data/
+
+# Start fresh
+docker compose up --build
+```
+
+### 2. Health Check
+```bash
+curl http://localhost:8000/health
+# Expected: {"status": "ok", "database": "ok", "qdrant": "ok", ...}
+```
+
+### 3. Upload Flow
+- Navigate to http://localhost:3000/upload
+- Upload a PDF or paste text
+- Verify patterns are extracted
+- Review page shows patterns with Claim/Evidence/Context
+
+### 4. Review Flow
+- Approve some patterns, reject others
+- Click "Submit Review"
+- Verify redirect to library
+
+### 5. Library View
+- Navigate to http://localhost:3000/library
+- Verify paper appears with correct status
+- Click paper to see patterns
+- Test filters (status, type)
+
+### 6. Query Flow
+- Navigate to http://localhost:3000/query
+- Ask a question about uploaded content
+- Verify response includes citations [P:id]
+- Test follow-up questions
+- Verify session history persists
+
+### 7. Test All Endpoints
+```bash
+# Run full test suite
+cd backend && uv run pytest -v
+# Expected: 619 passed
+
+cd frontend && npm test
+# Expected: 23 passed
+```
+
 ## Getting Help
 
 - **Issues**: https://github.com/aakashsharan/research-vault/issues
