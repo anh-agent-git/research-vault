@@ -1,5 +1,10 @@
 """Business logic services."""
 
+from app.services.document_chunker import (
+    ChunkingResult,
+    DocumentChunk,
+    DocumentChunker,
+)
 from app.services.embedding_service import (
     EmbeddingError,
     EmbeddingResult,
@@ -13,6 +18,9 @@ from app.services.session_manager import SessionManager, session_manager
 from app.services.vector_store import VectorStoreService
 
 __all__ = [
+    "ChunkingResult",
+    "DocumentChunk",
+    "DocumentChunker",
     "EmbeddingError",
     "EmbeddingResult",
     "EmbeddingService",
