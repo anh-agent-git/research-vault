@@ -62,7 +62,12 @@ export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) 
       <div className="prose prose-sm max-w-none dark:prose-invert">
         {parsedResponse.map((part, i) =>
           part.type === "citation" ? (
-            <CitationLink key={i} patternId={part.value} sources={response.sources} />
+            <CitationLink
+              key={i}
+              patternId={part.value}
+              sources={response.sources}
+              onExpand={() => setShowAllSources(true)}
+            />
           ) : (
             <Fragment key={i}>{part.value}</Fragment>
           )
@@ -141,26 +146,48 @@ export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) 
 function CitationLink({
   patternId,
   sources,
+  onExpand,
 }: {
   patternId: string;
   sources: SourceReference[];
+  onExpand?: () => void;
 }) {
   const source = sources.find((s) => s.pattern_id === patternId);
 
+  const handleClick = () => {
+    // Expand sources if collapsed
+    onExpand?.();
+
+    // Scroll to the source card after a brief delay to allow expansion
+    setTimeout(() => {
+      const element = document.getElementById(`source-${patternId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Highlight briefly
+        element.classList.add("ring-2", "ring-primary");
+        setTimeout(() => {
+          element.classList.remove("ring-2", "ring-primary");
+        }, 2000);
+      }
+    }, 100);
+  };
+
   return (
-    <span
-      className="inline-flex cursor-pointer items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/20"
+    <button
+      type="button"
+      onClick={handleClick}
+      className="inline-flex cursor-pointer items-center rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
       title={source?.summary || `Pattern ${patternId}`}
     >
       <ExternalLink className="mr-1 h-3 w-3" />
       {patternId.slice(0, 8)}
-    </span>
+    </button>
   );
 }
 
 function SourceCard({ source }: { source: SourceReference }) {
   return (
-    <Card className="bg-muted/50">
+    <Card id={`source-${source.pattern_id}`} className="bg-muted/50 transition-all">
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
