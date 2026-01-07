@@ -327,12 +327,15 @@ docker compose up --scale frontend=1 --scale backend=1
 git clone https://github.com/aakashsharan/research-vault.git
 cd research-vault
 
-# Create environment files
+# For Docker Compose (recommended):
 cp .env.example .env
-cp backend/.env.example backend/.env
-# Edit both files with your API keys:
+# Edit .env with your API keys:
 #   ANTHROPIC_API_KEY=sk-ant-...
 #   OPENAI_API_KEY=sk-proj-...
+
+# For manual development (without Docker):
+cp backend/.env.example backend/.env
+# Edit backend/.env with your API keys
 ```
 
 ### Starting Services
