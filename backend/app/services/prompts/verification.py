@@ -130,7 +130,12 @@ Return ONLY a JSON object with EXACTLY these fields (no additional fields):
     "improvement_suggestions": ["Consider citing E8 for additional support"]
 }
 
-IMPORTANT: Do NOT add any fields beyond those shown above. Keep improvement_suggestions concise (max 3 items, one sentence each).
+CRITICAL INSTRUCTIONS:
+- Return ONLY the JSON object, nothing else
+- Do NOT add any text, commentary, or observations before or after the JSON
+- Do NOT add any fields beyond those shown above
+- Keep improvement_suggestions concise (max 3 items, one sentence each)
+- Your entire response must be valid JSON that can be parsed directly
 
 ## Verification Status Guidelines
 - **pass**: No errors, few or no warnings, good evidence coverage
