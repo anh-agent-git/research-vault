@@ -1,5 +1,7 @@
 """Qdrant vector store service for pattern embeddings."""
 
+import asyncio
+
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import (
@@ -133,13 +135,13 @@ class VectorStoreService:
             ),
         )
 
-    def search(
+    def _search_sync(
         self,
         query_vector: list[float],
         limit: int = 10,
         filter_conditions: dict | None = None,
     ) -> list[dict]:
-        """Search for similar patterns.
+        """Synchronous search implementation.
 
         Args:
             query_vector: Query embedding vector.
@@ -163,6 +165,28 @@ class VectorStoreService:
             }
             for hit in response.points
         ]
+
+    async def search(
+        self,
+        query_vector: list[float],
+        limit: int = 10,
+        filter_conditions: dict | None = None,
+    ) -> list[dict]:
+        """Search for similar patterns (async).
+
+        Runs the sync Qdrant client in a thread pool to avoid blocking.
+
+        Args:
+            query_vector: Query embedding vector.
+            limit: Maximum number of results.
+            filter_conditions: Optional Qdrant filter conditions.
+
+        Returns:
+            List of matching patterns with scores.
+        """
+        return await asyncio.to_thread(
+            self._search_sync, query_vector, limit, filter_conditions
+        )
 
     def get_collection_info(self) -> dict | None:
         """Get collection statistics.
