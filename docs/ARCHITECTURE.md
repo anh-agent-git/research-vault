@@ -295,6 +295,18 @@ Session Management:
 - Uses cheaper model (Haiku) for mechanical tasks
 - Uses smarter model (Sonnet) for nuanced extraction
 
+### Document Chunking (Large Papers)
+
+For documents exceeding 40,000 tokens, the system uses chunked extraction:
+
+| Phase | Description |
+|-------|-------------|
+| Phase A | Extract patterns from each chunk (Pass 1 + 2) |
+| Phase B | Verify citations per chunk (Pass 3) |
+| Phase C | Synthesis pass for cross-chunk deduplication |
+
+This enables handling of large papers (up to 200 pages) without context window limits while maintaining citation accuracy.
+
 ### Data Model Design
 
 **Why Patterns as First-Class Entities?**
@@ -348,7 +360,7 @@ Pattern {
 
 | Input | Validation |
 |-------|------------|
-| PDF uploads | File size limit (10MB), page limit (100) |
+| PDF uploads | File size limit (10MB), page limit (200) |
 | Text input | Non-empty, reasonable length |
 | Query strings | Non-empty validation |
 | Pattern IDs | UUID format validation |
@@ -356,10 +368,10 @@ Pattern {
 ### CORS Configuration
 
 ```python
-# Current: Allow all origins (development)
-allow_origins=["*"]
+# Development: Allow localhost frontend only
+allow_origins=["http://localhost:3000"]
 
-# Production: Restrict to frontend domain
+# Production: Restrict to your frontend domain
 allow_origins=["https://your-domain.com"]
 ```
 

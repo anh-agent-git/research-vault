@@ -80,7 +80,7 @@ Answers must be **grounded in stored patterns and metadata**, not only the curre
 | Relational DB | SQLite (MVP) → PostgreSQL |
 | Backend | FastAPI 0.128.x |
 | Frontend | Next.js 16.x |
-| PDF Parsing | PyMuPDF 1.26.x |
+| PDF Parsing | PyMuPDF 1.26.x (200 page limit, 10MB max) |
 
 ---
 

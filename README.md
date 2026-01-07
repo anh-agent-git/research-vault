@@ -27,11 +27,27 @@ Research Vault transforms unstructured research content (PDFs, articles, notes) 
 
 ## Status
 
-🚧 **Under Development** - Not ready for production use.
+🔬 **Beta** - Functional for personal research workflows. Contributions welcome!
+
+## Design Notes
+
+- **Single-user system** - Designed for individual researchers
+- **Local-first** - All data stored on your machine, no cloud dependency
+- **Extensible** - Fork and customize for your research needs
 
 ## Quick Start
 
-*Coming soon - see [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) once available.*
+See [Getting Started](docs/GETTING_STARTED.md) for detailed setup instructions.
+
+**TL;DR:**
+```bash
+git clone https://github.com/aakashsharan/research-vault.git
+cd research-vault
+cp .env.example .env  # Add your API keys
+docker compose up --build
+```
+
+Open http://localhost:3000 to start uploading papers.
 
 ## Documentation
 
