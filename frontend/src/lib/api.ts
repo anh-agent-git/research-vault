@@ -10,6 +10,7 @@ import type {
   PaperResponse,
   PaperUploadResponse,
   PatternDecision,
+  PatternDetailResponse,
   PatternListResponse,
   PatternResponse,
   PatternReviewResponse,
@@ -216,6 +217,15 @@ export async function listPatterns(
 }
 
 /**
+ * Get a single pattern by ID with full details.
+ */
+export async function getPattern(
+  patternId: string
+): Promise<PatternDetailResponse> {
+  return request<PatternDetailResponse>(`/api/patterns/${patternId}`);
+}
+
+/**
  * Update a pattern.
  */
 export async function updatePattern(
@@ -280,6 +290,7 @@ export const api = {
   patterns: {
     submitReview: submitPatternReview,
     list: listPatterns,
+    get: getPattern,
     update: updatePattern,
     delete: deletePattern,
   },

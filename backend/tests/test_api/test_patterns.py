@@ -357,6 +357,89 @@ class TestUpdatePattern:
         mock_vs.upsert.assert_called_once()
 
 
+class TestGetPattern:
+    """Tests for GET /api/patterns/{pattern_id}."""
+
+    @pytest.mark.asyncio
+    async def test_get_pattern_success(self, client_with_db, async_db_session):
+        """Get pattern returns full details with paper title."""
+        paper = Paper(
+            id="paper-get-1",
+            title="Test Paper Title",
+            status=PaperStatus.active,
+            type=PaperType.research_paper,
+        )
+        async_db_session.add(paper)
+
+        pattern = Pattern(
+            id="pattern-get-1",
+            paper_id="paper-get-1",
+            name="Test Pattern",
+            claim="Test claim",
+            evidence="Test evidence",
+            context="Test context",
+            tags=["tag1", "tag2"],
+            status=PatternStatus.approved,
+        )
+        async_db_session.add(pattern)
+        await async_db_session.commit()
+
+        response = client_with_db.get("/api/patterns/pattern-get-1")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["id"] == "pattern-get-1"
+        assert data["paper_id"] == "paper-get-1"
+        assert data["paper_title"] == "Test Paper Title"
+        assert data["name"] == "Test Pattern"
+        assert data["claim"] == "Test claim"
+        assert data["evidence"] == "Test evidence"
+        assert data["context"] == "Test context"
+        assert data["tags"] == ["tag1", "tag2"]
+        assert data["status"] == "approved"
+
+    @pytest.mark.asyncio
+    async def test_get_pattern_with_some_null_fields(
+        self, client_with_db, async_db_session
+    ):
+        """Get pattern handles partially null fields."""
+        paper = Paper(
+            id="paper-get-partial-1",
+            title="Paper With Partial Nulls",
+            status=PaperStatus.active,
+            type=PaperType.research_paper,
+        )
+        async_db_session.add(paper)
+
+        # Pattern must have at least one content field due to CHECK constraint
+        pattern = Pattern(
+            id="pattern-get-partial-1",
+            paper_id="paper-get-partial-1",
+            name="Minimal Pattern",
+            claim="This is the claim",  # At least one content field required
+            status=PatternStatus.pending,
+        )
+        async_db_session.add(pattern)
+        await async_db_session.commit()
+
+        response = client_with_db.get("/api/patterns/pattern-get-partial-1")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["claim"] == "This is the claim"
+        assert data["evidence"] is None
+        assert data["context"] is None
+        assert data["tags"] == []
+
+    def test_get_pattern_not_found(self, client_with_db):
+        """Get nonexistent pattern returns 404."""
+        response = client_with_db.get("/api/patterns/nonexistent")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        data = response.json()
+        assert data["detail"]["code"] == "NOT_FOUND"
+
+
 class TestDeletePattern:
     """Tests for DELETE /api/patterns/{pattern_id}."""
 

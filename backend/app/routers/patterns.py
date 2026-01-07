@@ -144,6 +144,43 @@ async def list_patterns(
     return {"patterns": pattern_responses}
 
 
+# --- Get Pattern Route ---
+
+
+@patterns_router.get("/{pattern_id}")
+async def get_pattern(
+    pattern_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get a single pattern by ID with full details."""
+    pattern = await db.get(Pattern, pattern_id)
+
+    if not pattern:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"code": "NOT_FOUND", "message": "Pattern not found"},
+        )
+
+    # Get the paper title
+    paper = await db.get(Paper, pattern.paper_id)
+    paper_title = paper.title if paper else "Unknown"
+
+    return {
+        "id": pattern.id,
+        "paper_id": pattern.paper_id,
+        "paper_title": paper_title,
+        "name": pattern.name,
+        "claim": pattern.claim,
+        "evidence": pattern.evidence,
+        "context": pattern.context,
+        "tags": pattern.tags or [],
+        "custom_fields": pattern.custom_fields,
+        "status": pattern.status,
+        "created_at": pattern.created_at.isoformat() if pattern.created_at else "",
+        "updated_at": pattern.updated_at.isoformat() if pattern.updated_at else "",
+    }
+
+
 # --- Update Pattern Route ---
 
 

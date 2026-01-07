@@ -329,6 +329,9 @@ from app.routers import paper_patterns_router, patterns_router
 # Query params: status
 # Returns: patterns list
 
+# GET /api/patterns/{pattern_id} - Get single pattern by ID
+# Returns: full pattern details with paper_title
+
 # PUT /api/patterns/{pattern_id} - Update pattern
 # Body: partial pattern fields (name, claim, evidence, context, tags)
 # Triggers re-embedding if content fields change

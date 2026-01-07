@@ -115,6 +115,13 @@ export interface PatternResponse {
 }
 
 /**
+ * Pattern response with paper details (from GET /api/patterns/{id}).
+ */
+export interface PatternDetailResponse extends PatternResponse {
+  paper_title: string;
+}
+
+/**
  * Single pattern review decision.
  */
 export interface PatternDecision {

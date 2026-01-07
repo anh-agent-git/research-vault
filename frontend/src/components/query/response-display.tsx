@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { QueryResponse, SourceReference } from "@/types";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
+import { PatternDetailModal } from "./pattern-detail-modal";
 
 export interface ResponseDisplayProps {
   response: QueryResponse;
@@ -20,6 +21,18 @@ const CONFIDENCE_VARIANTS: Record<string, "default" | "success" | "warning" | "s
 
 export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) {
   const [showAllSources, setShowAllSources] = useState(false);
+  const [selectedPatternId, setSelectedPatternId] = useState<string | null>(null);
+  const [selectedRelevanceScore, setSelectedRelevanceScore] = useState<number | null>(null);
+
+  const handlePatternClick = (patternId: string, relevanceScore?: number | null) => {
+    setSelectedPatternId(patternId);
+    setSelectedRelevanceScore(relevanceScore ?? null);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPatternId(null);
+    setSelectedRelevanceScore(null);
+  };
 
   // Parse [P:id] citations in the response text
   const parsedResponse = useMemo(() => {
@@ -67,6 +80,7 @@ export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) 
               patternId={part.value}
               sources={response.sources}
               onExpand={() => setShowAllSources(true)}
+              onPatternClick={handlePatternClick}
             />
           ) : (
             <Fragment key={i}>{part.value}</Fragment>
@@ -92,7 +106,11 @@ export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) 
           </h4>
           <div className="space-y-2">
             {visibleSources.map((source) => (
-              <SourceCard key={source.pattern_id} source={source} />
+              <SourceCard
+                key={source.pattern_id}
+                source={source}
+                onClick={() => handlePatternClick(source.pattern_id, source.relevance_score)}
+              />
             ))}
           </div>
           {response.sources.length > 3 && (
@@ -139,6 +157,13 @@ export function ResponseDisplay({ response, onFollowUp }: ResponseDisplayProps) 
           </div>
         </div>
       )}
+
+      {/* Pattern detail modal */}
+      <PatternDetailModal
+        patternId={selectedPatternId}
+        relevanceScore={selectedRelevanceScore}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
@@ -147,23 +172,28 @@ function CitationLink({
   patternId,
   sources,
   onExpand,
+  onPatternClick,
 }: {
   patternId: string;
   sources: SourceReference[];
   onExpand?: () => void;
+  onPatternClick?: (patternId: string, relevanceScore?: number | null) => void;
 }) {
   const source = sources.find((s) => s.pattern_id === patternId);
 
   const handleClick = () => {
-    // Expand sources if collapsed
-    onExpand?.();
+    // Open the pattern detail modal
+    if (onPatternClick) {
+      onPatternClick(patternId, source?.relevance_score);
+      return;
+    }
 
-    // Scroll to the source card after a brief delay to allow expansion
+    // Fallback: Expand sources and scroll to source card
+    onExpand?.();
     setTimeout(() => {
       const element = document.getElementById(`source-${patternId}`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Highlight briefly
         element.classList.add("ring-2", "ring-primary");
         setTimeout(() => {
           element.classList.remove("ring-2", "ring-primary");
@@ -185,9 +215,19 @@ function CitationLink({
   );
 }
 
-function SourceCard({ source }: { source: SourceReference }) {
+function SourceCard({
+  source,
+  onClick,
+}: {
+  source: SourceReference;
+  onClick?: () => void;
+}) {
   return (
-    <Card id={`source-${source.pattern_id}`} className="bg-muted/50 transition-all">
+    <Card
+      id={`source-${source.pattern_id}`}
+      className="bg-muted/50 transition-all cursor-pointer hover:bg-muted/70"
+      onClick={onClick}
+    >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">

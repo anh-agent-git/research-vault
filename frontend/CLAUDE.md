@@ -58,6 +58,7 @@ frontend/
 │   │   ├── query/               # Query page components
 │   │   │   ├── search-input.tsx
 │   │   │   ├── response-display.tsx
+│   │   │   ├── pattern-detail-modal.tsx  # Modal for viewing pattern details
 │   │   │   ├── conversation-history.tsx
 │   │   │   └── index.ts
 │   │   └── theme-provider.tsx   # next-themes wrapper
@@ -93,13 +94,16 @@ frontend/
 ### API Client
 
 ```typescript
-import { uploadPaper, listPapers, submitQuery } from '@/lib/api';
+import { uploadPaper, listPapers, submitQuery, getPattern } from '@/lib/api';
 
 // Upload paper
 const result = await uploadPaper(formData);
 
 // List papers with filters
 const papers = await listPapers({ status: 'active', limit: 20 });
+
+// Get pattern details (includes paper_title)
+const pattern = await getPattern('pattern-uuid');
 
 // Query the library
 const response = await submitQuery('What patterns relate to X?', sessionId);
