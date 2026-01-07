@@ -23,7 +23,7 @@ class PDFParseResult:
 class PDFParserService:
     """Service for extracting text from PDF files."""
 
-    def __init__(self, max_pages: int = 50):
+    def __init__(self, max_pages: int = 200):
         """Initialize parser with page limit.
 
         Args:
