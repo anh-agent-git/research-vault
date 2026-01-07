@@ -239,7 +239,11 @@ class TestVectorStoreServiceDeletePattern:
 
 
 class TestVectorStoreServiceSearch:
-    """Tests for VectorStoreService.search() method."""
+    """Tests for VectorStoreService.search() method.
+
+    Note: Tests use _search_sync directly since the async search() wrapper
+    just delegates to asyncio.to_thread(_search_sync, ...).
+    """
 
     def test_search_calls_query_points(
         self, vector_store, mock_qdrant_client, sample_vector
@@ -247,7 +251,7 @@ class TestVectorStoreServiceSearch:
         """Calls Qdrant query_points."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        vector_store.search(query_vector=sample_vector)
+        vector_store._search_sync(query_vector=sample_vector)
 
         mock_qdrant_client.query_points.assert_called_once()
 
@@ -257,7 +261,7 @@ class TestVectorStoreServiceSearch:
         """Searches in the patterns collection."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        vector_store.search(query_vector=sample_vector)
+        vector_store._search_sync(query_vector=sample_vector)
 
         call_kwargs = mock_qdrant_client.query_points.call_args[1]
         assert call_kwargs["collection_name"] == COLLECTION_NAME
@@ -268,7 +272,7 @@ class TestVectorStoreServiceSearch:
         """Passes query vector to Qdrant."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        vector_store.search(query_vector=sample_vector)
+        vector_store._search_sync(query_vector=sample_vector)
 
         call_kwargs = mock_qdrant_client.query_points.call_args[1]
         assert call_kwargs["query"] == sample_vector
@@ -279,7 +283,7 @@ class TestVectorStoreServiceSearch:
         """Uses default limit of 10."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        vector_store.search(query_vector=sample_vector)
+        vector_store._search_sync(query_vector=sample_vector)
 
         call_kwargs = mock_qdrant_client.query_points.call_args[1]
         assert call_kwargs["limit"] == 10
@@ -290,7 +294,7 @@ class TestVectorStoreServiceSearch:
         """Accepts custom limit parameter."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        vector_store.search(query_vector=sample_vector, limit=5)
+        vector_store._search_sync(query_vector=sample_vector, limit=5)
 
         call_kwargs = mock_qdrant_client.query_points.call_args[1]
         assert call_kwargs["limit"] == 5
@@ -302,7 +306,7 @@ class TestVectorStoreServiceSearch:
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
         filters = {"paper_type": "research_paper"}
 
-        vector_store.search(query_vector=sample_vector, filter_conditions=filters)
+        vector_store._search_sync(query_vector=sample_vector, filter_conditions=filters)
 
         call_kwargs = mock_qdrant_client.query_points.call_args[1]
         assert call_kwargs["query_filter"] == filters
@@ -323,7 +327,7 @@ class TestVectorStoreServiceSearch:
 
         mock_qdrant_client.query_points.return_value = MagicMock(points=[hit1, hit2])
 
-        results = vector_store.search(query_vector=sample_vector)
+        results = vector_store._search_sync(query_vector=sample_vector)
 
         assert len(results) == 2
         assert results[0] == {
@@ -343,9 +347,20 @@ class TestVectorStoreServiceSearch:
         """Returns empty list when no patterns match."""
         mock_qdrant_client.query_points.return_value = MagicMock(points=[])
 
-        results = vector_store.search(query_vector=sample_vector)
+        results = vector_store._search_sync(query_vector=sample_vector)
 
         assert results == []
+
+    async def test_async_search_delegates_to_sync(
+        self, vector_store, mock_qdrant_client, sample_vector
+    ):
+        """Async search() delegates to _search_sync via asyncio.to_thread."""
+        mock_qdrant_client.query_points.return_value = MagicMock(points=[])
+
+        results = await vector_store.search(query_vector=sample_vector)
+
+        assert results == []
+        mock_qdrant_client.query_points.assert_called_once()
 
 
 # --- VectorStoreService.get_collection_info() Tests ---

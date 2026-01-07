@@ -16,6 +16,7 @@ from fastapi import (
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db import get_db
 from app.models import Paper, PaperStatus, PaperType, Pattern
 from app.schemas.paper import PaperMetadataInput, PaperResponse
@@ -88,7 +89,27 @@ async def upload_paper(
     # Build ingestion input
     try:
         if file is not None:
+            # Check file size before reading into memory
+            max_size_mb = settings.max_file_size_mb
+            max_size_bytes = max_size_mb * 1024 * 1024
+            if file.size and file.size > max_size_bytes:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "code": "FILE_TOO_LARGE",
+                        "message": f"File exceeds maximum size of {max_size_mb}MB",
+                    },
+                )
             pdf_bytes = await file.read()
+            # Double-check size after read (file.size may be None for some uploads)
+            if len(pdf_bytes) > max_size_bytes:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "code": "FILE_TOO_LARGE",
+                        "message": f"File exceeds maximum size of {max_size_mb}MB",
+                    },
+                )
             ingestion_input = IngestionInput(
                 pdf_bytes=pdf_bytes,
                 user_metadata=user_metadata,
