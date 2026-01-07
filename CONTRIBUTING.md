@@ -113,13 +113,73 @@ All contributions must include tests:
 - **Integration tests** for API endpoints
 - **Update existing tests** if behavior changes
 
+### Running Tests
+
 ```bash
-# Run all tests
+# Run all backend tests
+cd backend
 uv run pytest
 
 # Run with coverage
-uv run pytest --cov=app --cov-report=html
+uv run pytest --cov=app --cov-report=term-missing
+
+# Run unit tests only (faster)
+uv run pytest tests/ --ignore=tests/test_integration
+
+# Run integration tests only
+uv run pytest tests/test_integration/
+
+# Run frontend tests
+cd frontend
+npm test
 ```
+
+### Integration Tests
+
+Integration tests in `backend/tests/test_integration/` test the full workflow with mocked external services (LLM, embeddings, Qdrant). They verify:
+
+- **Full pipeline:** Upload → Extract → Review → Query
+- **Error handling:** Invalid inputs, service failures
+- **Partial success:** System continues when non-critical components fail
+
+When adding new features, include integration tests that verify end-to-end behavior.
+
+## Security
+
+### Before Committing
+
+Run the security check script to catch potential issues:
+
+```bash
+bash scripts/security_check.sh
+```
+
+This checks for:
+- Hardcoded API keys
+- Personal file paths
+- Tracked .env files
+- SRAL migration artifacts
+- Debug logging of secrets
+
+### Security Guidelines
+
+1. **Never commit secrets**
+   - Use environment variables for API keys
+   - Use `.env.example` with placeholder values
+   - Pre-commit hooks will catch most issues
+
+2. **No personal paths**
+   - Don't hardcode `/Users/username/` or `/home/username/`
+   - Use relative paths or environment variables
+
+3. **Validate inputs**
+   - Sanitize user-provided data
+   - Use Pydantic schemas for validation
+   - Limit file upload sizes
+
+4. **Report vulnerabilities**
+   - Email security issues privately
+   - Don't open public issues for vulnerabilities
 
 ## Issue Guidelines
 
