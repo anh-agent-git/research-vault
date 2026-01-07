@@ -203,27 +203,40 @@ class TestPatternExtractor:
         assert any("Verification failed" in w for w in result.warnings)
 
     @pytest.mark.asyncio
-    async def test_extract_truncates_long_text(
+    async def test_extract_uses_chunking_for_large_documents(
         self,
-        extractor: PatternExtractor,
         mock_haiku_client: AsyncMock,
         mock_sonnet_client: AsyncMock,
         sample_evidence_response: dict,
         sample_extraction_response: dict,
-        sample_verification_response: dict,
     ) -> None:
-        """Should truncate long text and add warning."""
+        """Should chunk large documents and add warning."""
+        from app.services.document_chunker import DocumentChunker
+
+        # Use a small token limit to force chunking
+        chunker = DocumentChunker(token_limit=100)  # 400 chars
+
+        extractor = PatternExtractor(
+            haiku_client=mock_haiku_client,
+            sonnet_client=mock_sonnet_client,
+            chunker=chunker,
+        )
+
+        # Mock responses for chunked extraction (multiple calls per chunk)
         mock_haiku_client.complete_json.side_effect = [
-            sample_evidence_response,
-            sample_verification_response,
+            sample_evidence_response,  # Chunk 1 Pass 1
+            sample_evidence_response,  # Chunk 2 Pass 1
+            {"merge": [], "remove": [], "gaps": []},  # Synthesis pass
         ]
         mock_sonnet_client.complete_json.return_value = sample_extraction_response
 
-        long_text = "x" * 100_000
+        long_text = "x" * 2000  # ~500 tokens, will be chunked at 100 token limit
 
         result = await extractor.extract(long_text)
 
-        assert any("truncated" in w.lower() for w in result.warnings)
+        # Should have warning about chunking
+        assert any("chunk" in w.lower() for w in result.warnings)
+        assert result.was_chunked is True
 
     @pytest.mark.asyncio
     async def test_extract_includes_metadata_context(
