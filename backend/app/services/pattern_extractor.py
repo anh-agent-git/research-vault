@@ -227,6 +227,7 @@ class PatternExtractor:
         response = await client.complete_json(
             system_prompt=VERIFICATION_SYSTEM,
             user_prompt=user_prompt,
+            max_tokens=4096,  # Verification output is small, but add margin for safety
             temperature=VERIFICATION_TEMP,
         )
 
