@@ -107,7 +107,7 @@ Review the extracted patterns against the evidence inventory and identify any is
 - Flag if the same content is repeated across fields.
 
 ## Output Format
-Return ONLY a JSON object:
+Return ONLY a JSON object with EXACTLY these fields (no additional fields):
 {
     "verification_status": "pass|warn|fail",
     "citation_issues": [
@@ -129,6 +129,8 @@ Return ONLY a JSON object:
     "overall_quality": "high|medium|low",
     "improvement_suggestions": ["Consider citing E8 for additional support"]
 }
+
+IMPORTANT: Do NOT add any fields beyond those shown above. Keep improvement_suggestions concise (max 3 items, one sentence each).
 
 ## Verification Status Guidelines
 - **pass**: No errors, few or no warnings, good evidence coverage
