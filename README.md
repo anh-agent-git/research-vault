@@ -124,7 +124,7 @@ Research Vault builds on ideas from:
 - **Obsidian/Roam** - Graph-based note-taking, manual organization
 - **Zotero/Mendeley** - Reference management, no LLM synthesis
 
-See [SRAL Framework Paper](https://zenodo.org/records/18049753) for the evaluation framework that inspired this work.
+See [SRAL Framework Github](https://github.com/aakashsharan/sral-framework) and [SRAL Framework Paper](https://zenodo.org/records/18049753) for the evaluation framework that inspired this work.
 
 ## License
 
