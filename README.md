@@ -1,4 +1,7 @@
 # Research Vault
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 An **agentic AI** research assistant that extracts structured patterns from papers and enables cross-document synthesis through natural language queries. Built with **LLM orchestration**, **RAG (Retrieval-Augmented Generation)**, and **vector search**.
 
@@ -46,7 +49,15 @@ This is an open-source version of my personal tool, simplified for others facing
 
 ## Status
 
-🔬 **Beta** - Functional for personal research workflows. Contributions welcome!
+✅ **Production-ready for personal use** - Beta for multi-user features
+
+- **619 backend tests** + **23 frontend tests**
+- **7 comprehensive docs** (Architecture, API, Operations, etc.)
+- **Docker deployment** with health checks
+- **CI/CD pipeline** (linting, testing, building)
+
+
+**Contributions welcome!** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Design Notes
 
@@ -66,7 +77,28 @@ cp .env.example .env  # Add your API keys
 docker compose up --build
 ```
 
-Open http://localhost:3000 to start uploading papers.
+Open http://localhost:3000
+
+### What You'll See
+1. **Upload page** - Drop a PDF or paste text
+2. **Review page** - Approve/reject extracted patterns
+3. **Library page** - Browse your knowledge base
+4. **Query page** - Ask questions, get synthesized answers
+
+## Production Features
+
+Research Vault isn't just a demo—it's built for daily use:
+
+- ✅ **Partial success handling** - Paper saved even if extraction fails
+- ✅ **Graceful degradation** - Continues working if vector DB is unavailable
+- ✅ **Retry logic** - LLM calls retry with exponential backoff
+- ✅ **Error boundaries** - Frontend handles API failures gracefully
+- ✅ **Health checks** - `/health` endpoint monitors all dependencies
+- ✅ **Comprehensive logging** - Debug production issues easily
+- ✅ **Integration tests** - Full pipeline tested end-to-end
+- ✅ Security scanning - Pre-commit hooks prevent secret leaks
+
+See [OPERATIONS.md](docs/OPERATIONS.md) for deployment and troubleshooting.
 
 ## Documentation
 
@@ -75,6 +107,24 @@ Open http://localhost:3000 to start uploading papers.
 - [Domain Model](docs/DOMAIN_MODEL.md) - Entity schemas
 - [Operations](docs/OPERATIONS.md) - Deployment and troubleshooting
 - [Contributing](CONTRIBUTING.md) - How to contribute
+
+## Community & Support
+
+- 🐛 **Bug reports:** [GitHub Issues](https://github.com/aakashsharan/research-vault/issues)
+- 📖 **Documentation:** [docs/](docs/)
+- 🤝 **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+**Built by [@aakashsharan](https://github.com/aakashsharan)** - Applying 12+ years of distributed systems experience to agentic AI challenges.
+
+## Related Work
+
+Research Vault builds on ideas from:
+- **ReAct** (Yao et al.) - Interleaving reasoning and action
+- **NotebookLM** - Excellent Q&A over documents, different approach to synthesis
+- **Obsidian/Roam** - Graph-based note-taking, manual organization
+- **Zotero/Mendeley** - Reference management, no LLM synthesis
+
+See [SRAL Framework Paper](SRAL_Framework_Paper.pdf) for the evaluation framework that inspired this work.
 
 ## License
 
