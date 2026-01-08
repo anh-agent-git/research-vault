@@ -96,7 +96,7 @@ Research Vault isn't just a demo—it's built for daily use:
 - ✅ **Health checks** - `/health` endpoint monitors all dependencies
 - ✅ **Comprehensive logging** - Debug production issues easily
 - ✅ **Integration tests** - Full pipeline tested end-to-end
-- ✅ Security scanning - Pre-commit hooks prevent secret leaks
+- ✅ **Security scanning** - Pre-commit hooks prevent secret leaks
 
 See [OPERATIONS.md](docs/OPERATIONS.md) for deployment and troubleshooting.
 
@@ -124,7 +124,7 @@ Research Vault builds on ideas from:
 - **Obsidian/Roam** - Graph-based note-taking, manual organization
 - **Zotero/Mendeley** - Reference management, no LLM synthesis
 
-See [SRAL Framework Paper](SRAL_Framework_Paper.pdf) for the evaluation framework that inspired this work.
+See [SRAL Framework Paper](https://zenodo.org/records/18049753) for the evaluation framework that inspired this work.
 
 ## License
 
